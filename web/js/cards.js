@@ -29,9 +29,9 @@ export function cardTooltip(card) {
   switch (card.type) {
     case 'gwang':
       if (card.isRain) {
-        return `${base} · 비광 (Rain Bright) — 3 Brights w/ Rain = 2 pts, 4 Brights = 4 pts, 5 Brights = 15 pts.`;
+        return `${base} · 비광 (Rain Gwang) — 3 Gwang w/ Rain = 2 pts, 4 Gwang = 4 pts, 5 Gwang = 15 pts.`;
       }
-      return `${base} · 광 (Bright) — 3 Brights = 3 pts (2 w/ Rain), 4 = 4 pts, 5 = 15 pts.`;
+      return `${base} · 광 (Gwang) — 3 Gwang = 3 pts (2 w/ Rain), 4 = 4 pts, 5 = 15 pts.`;
     case 'yeolkkut':
       if (card.isSakeCup) {
         return `${base} · 국진 (Sake Cup) — Dual-use! Automatically counts as EITHER 1 Animal OR 2 Pi (whichever scores higher or helps avoid Pi-bak).`;

@@ -9,7 +9,6 @@ export function getModeRulesSummary(config) {
         'Deal: 10 cards each, 8 cards face-up on the table.',
         'Win threshold: Reach 7+ base points to call Go or Stop.',
         'Pi-bak (피박): Opponent pays x2 if winner scores Pi and opponent has ≤ 7 Pi.',
-        'Gwang-bak (광박): Opponent pays x2 if winner scores Brights and opponent has 0 Brights.',
       ],
     };
   }
@@ -30,7 +29,6 @@ export function getModeRulesSummary(config) {
       'Deal: 7 cards each, 6 cards face-up on the table.',
       'Win threshold: Reach 3+ base points to call Go or Stop.',
       'Pi-bak (피박): Loser pays x2 if winner scores Pi and loser has ≤ 5 Pi.',
-      'Gwang-bak (광박): Loser pays x2 if winner scores Brights and loser has 0 Brights.',
     ],
   };
 }
@@ -38,13 +36,13 @@ export function getModeRulesSummary(config) {
 export function getFullScoringHtml() {
   return `
     <div class="rules-detail-grid">
-      <div><strong>광 (Brights)</strong>: 3 Brights = 3 pts (2 pts with Dec Rain Bright) · 4 = 4 pts · 5 = 15 pts.</div>
-      <div><strong>열 (Animals / Yeolkkut)</strong>: 5+ cards = 1 pt (+1 each extra). <em>Godori</em> (Feb, Apr, Aug birds) = +5 pts.</div>
+      <div><strong>광 (Gwang)</strong>: 3 Gwang = 3 pts (2 pts with Dec Rain Gwang) · 4 = 4 pts · 5 = 15 pts.</div>
+      <div><strong>열 (Animals / Yeolkkut)</strong>: 5+ cards = 1 pt (+1 each extra). <em>Godori</em> (Feb, Apr, Aug birds) = +5 pts. <em>Sake Cup (국진)</em> counts as 1 Animal OR 2 Pi.</div>
       <div><strong>띠 (Ribbons / Tti)</strong>: 5+ cards = 1 pt (+1 each extra). <em>Hongdan</em> (1,2,3 red poetry), <em>Cheongdan</em> (6,9,10 blue), or <em>Chodan</em> (4,5,7 plain red) = +3 pts each.</div>
       <div><strong>피 (Junk / Pi)</strong>: 10+ Pi = 1 pt (+1 each extra). Double-Pi counts as 2 Pi.</div>
       <div><strong>Go &amp; Multipliers</strong>: 1 Go = +1 pt · 2 Go = +2 pts · 3+ Go = +N pts &amp; x2 per Go (3 Go = x2, 4 Go = x4...). Shake / Bomb = x2 each.</div>
-      <div><strong>Penalties (박)</strong>: <em>Pi-bak</em> (x2), <em>Gwang-bak</em> (x2), <em>Go-bak</em> (if you called Go and someone else wins, you pay for everyone!).</div>
-      <div><strong>Special Moves</strong>: <em>Jjok (쪽)</em>, <em>Tdadak (따닥)</em>, <em>Sweep (판쓸이)</em>, and <em>Bomb (폭탄)</em> each steal 1 Pi from opponents. <em>Ppeok (뻑)</em> leaves 3 matching cards on the table.</div>
+      <div><strong>Penalties (박)</strong>: <em>Pi-bak</em> (x2), <em>Go-bak</em> (if you called Go and someone else wins, you pay for everyone!).</div>
+      <div><strong>Special Moves</strong>: <em>Ddak (딱)</em>, <em>Tdadak (따닥)</em>, <em>Sweep (판쓸이)</em>, and <em>Bomb (폭탄)</em> each steal 1 Pi from opponents. <em>Ssa (쌌다)</em> leaves 3 matching cards on the table.</div>
     </div>
   `;
 }

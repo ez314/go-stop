@@ -220,11 +220,6 @@ func CalculateSettlementDetailed(winnerIdx int, players []*PlayerState, cfg Rule
 			mult *= 2
 			penalties[i] = append(penalties[i], "Pi-bak (×2)")
 		}
-		// Gwang-bak: winner scored with Gwang and loser has 0 Gwang
-		if winScore.GwangScore > 0 && oppScore.GwangCount == 0 {
-			mult *= 2
-			penalties[i] = append(penalties[i], "Gwang-bak (×2)")
-		}
 
 		amt := winScore.TotalScore * mult
 		payer := i

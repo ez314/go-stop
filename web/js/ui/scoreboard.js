@@ -25,7 +25,7 @@ export function renderScoreboard(state) {
       const b = res.breakdown;
       subtitle = `Total: ${b.totalScore} pts (Base ${b.baseScore}${b.goBonus ? ` + ${b.goBonus} Go` : ''}${b.multiplier > 1 ? ` × ${b.multiplier}` : ''})`;
       const items = [];
-      if (b.gwangScore > 0) items.push(`${b.gwangCount} Brights (+${b.gwangScore})`);
+      if (b.gwangScore > 0) items.push(`${b.gwangCount} Gwang (+${b.gwangScore})`);
       if (b.godori) items.push('🐦 Godori (+5)');
       if (b.yeolkkutCount >= 5) items.push(`${b.yeolkkutCount} Animals (+${b.yeolkkutCount - 4})`);
       if (b.hongdan) items.push('🟥 Hongdan (+3)');

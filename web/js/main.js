@@ -105,8 +105,8 @@ function summarizeEvents(events, game) {
     if (ev.type === 'card_played' && ev.cards && ev.cards[0]) played = ev.cards[0].name;
     if (ev.type === 'card_flipped' && ev.cards && ev.cards[0]) flipped = ev.cards[0].name;
     if (ev.type === 'captured' && ev.cards) capturedCount += ev.cards.length;
-    if (ev.type === 'jjok') special = '쪽 (Jjok)!';
-    if (ev.type === 'ppeok') special = '뻑 (Ppeok)!';
+    if (ev.type === 'jjok') special = '딱 (Ddak)!';
+    if (ev.type === 'ppeok') special = '쌌다 (Ssa)!';
     if (ev.type === 'tdadak') special = '따닥 (Tdadak)!';
     if (ev.type === 'sweep') special = '판쓸이 (Sweep)!';
     if (ev.type === 'bomb') special = '폭탄 (Bomb)!';
@@ -160,8 +160,8 @@ onEvents((events) => {
     } else if (ev.type === 'sweep' || ev.type === 'jjok' || ev.type === 'tdadak' || ev.type === 'bomb' || ev.type === 'ppeok' || ev.type === 'shake') {
       setTimeout(() => { playChime(523.25); vibrate([20, 30, 20]); }, Math.min(animDuration, 600));
       const labels = {
-        jjok: '✨ 쪽! JJOK!',
-        ppeok: '💥 뻑! PPEOK!',
+        jjok: '✨ 딱! DDAK!',
+        ppeok: '💥 쌌다! SSA!',
         tdadak: '⚡ 따닥! TDADAK!',
         sweep: '🧹 판쓸이! SWEEP!',
         bomb: '💣 폭탄! BOMB!',

@@ -444,27 +444,26 @@ func (s *GameState) resolveFlip(playerIdx int) []Event {
 		s.Pending.FlippedCard = &flipped
 		matches := s.fieldMatches(flipped.Month)
 
-		// Check Jjok: hand play didn't match anything, and flip matched that exact played card
+		// Check Ddak: hand play didn't match anything, and flip matched that exact played card
 		if s.Pending.WasHandEmpty && s.Pending.PlayedCard != nil && flipped.Month == s.Pending.PlayedCard.Month {
 			removeCardByID(&s.Field, s.Pending.PlayedCard.ID)
 			captured := []Card{*s.Pending.PlayedCard, flipped}
-			events = append(events, Event{Type: "jjok", PlayerIdx: playerIdx, Cards: captured, Message: "Jjok! (쪽)"})
+			events = append(events, Event{Type: "jjok", PlayerIdx: playerIdx, Cards: captured, Message: "Ddak! (딱)"})
 			events = append(events, s.stealPiFromOpponents(playerIdx, 1)...)
 			events = append(events, s.finalizeTurn(playerIdx, captured)...)
 			return events
 		}
 
-		// Check Ppeok or Tdadak when hand play already matched on the same month
+		// Check Ssa or Tdadak when hand play already matched on the same month
 		if len(s.Pending.HandMatched) > 0 && flipped.Month == s.Pending.HandMatched[0].Month {
 			if len(s.Pending.HandMatched) == 2 && len(matches) == 1 {
-				// 1 was on field, played 2nd, flipped 3rd -> Ppeok!
-				// Wait: matches[0] is the field card that HandMatched[1] pointed to (not removed yet).
+				// 1 was on field, played 2nd, flipped 3rd -> Ssa!
 				// Unless it's the last card of the game, all 3 stay on field.
 				if len(p.Hand) > 0 || len(s.DrawPile) > 0 {
 					s.Field = append(s.Field, *s.Pending.PlayedCard, flipped)
 					s.Pending.HandMatched = nil
 					p.PpeokCount++
-					events = append(events, Event{Type: "ppeok", PlayerIdx: playerIdx, Message: "Ppeok! (뻑)"})
+					events = append(events, Event{Type: "ppeok", PlayerIdx: playerIdx, Message: "Ssa! (쌌다)"})
 					events = append(events, s.finalizeTurn(playerIdx, nil)...)
 					return events
 				}

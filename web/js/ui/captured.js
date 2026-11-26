@@ -19,7 +19,7 @@ function renderCapturedGroups(captured, score, cfg) {
     {
       key: 'gwang',
       label: `광(${score.gwangCount})`,
-      tip: `Brights (광): ${score.gwangScore} pts. 3 Brights = 3 pts (2 w/ Rain) · 4 = 4 pts · 5 = 15 pts. Gwang-bak (x2) if winner scores Brights and loser has 0.`,
+      tip: `Gwang (광): ${score.gwangScore} pts. 3 Gwang = 3 pts (2 w/ Rain) · 4 = 4 pts · 5 = 15 pts.`,
     },
     {
       key: 'yeolkkut',
@@ -57,7 +57,7 @@ function renderCapturedGroups(captured, score, cfg) {
 
 function scoreTooltip(s, winScore) {
   return `Score Breakdown (Need ${winScore}+ base pts to Stop):\n` +
-    `• Brights (광): ${s.gwangScore} pts\n` +
+    `• Gwang (광): ${s.gwangScore} pts\n` +
     `• Animals (열): ${s.yeolkkutScore} pts${s.godori ? ' (Godori!)' : ''}\n` +
     `• Ribbons (띠): ${s.ttiScore} pts\n` +
     `• Junk (피): ${s.piScore} pts (${s.piCount} Pi)\n` +
@@ -68,7 +68,7 @@ function buildComboChips(me, allPlayers, cfg) {
   const chips = [];
   const s = me.score;
 
-  // Progress toward Brights
+  // Progress toward Gwang
   if (s.gwangCount > 0 && s.gwangCount < 3) {
     chips.push({ text: `광 ${s.gwangCount}/3`, cls: s.gwangCount === 2 ? 'hot' : '' });
   }
@@ -90,15 +90,11 @@ function buildComboChips(me, allPlayers, cfg) {
   if (cheong === 2) chips.push({ text: '🟦 Cheongdan 2/3 (+3)', cls: 'hot' });
   if (cho === 2) chips.push({ text: '🟧 Chodan 2/3 (+3)', cls: 'hot' });
 
-  // Danger warnings (Pi-bak / Gwang-bak)
+  // Danger warning (Pi-bak)
   const piBakLimit = cfg ? cfg.piBakThreshold : 7;
   const oppHighPi = allPlayers.some((p) => p.index !== me.index && !p.folded && p.score.piCount >= 7);
   if (oppHighPi && s.piCount <= piBakLimit) {
     chips.push({ text: `⚠️ Pi-bak risk (need ${piBakLimit + 1}+ Pi)`, cls: 'warn' });
-  }
-  const oppHighGwang = allPlayers.some((p) => p.index !== me.index && !p.folded && p.score.gwangCount >= 2);
-  if (oppHighGwang && s.gwangCount === 0) {
-    chips.push({ text: '⚠️ Gwang-bak risk (0 광)', cls: 'warn' });
   }
 
   if (!chips.length) return null;

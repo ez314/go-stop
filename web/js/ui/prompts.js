@@ -47,7 +47,7 @@ export function renderPrompts(state) {
         </p>
         <div class="modal-actions">
           <button id="btn-go" class="btn" type="button" title="Keep playing for more points: 1 Go = +1 pt, 2 Go = +2 pts, 3+ Go = x2 per Go. Warning: if another player wins first, you pay for everyone (Go-bak)!">🔥 GO (+1 / x2)</button>
-          <button id="btn-stop" class="btn danger" type="button" title="End the round now and collect points from opponents (including any Pi-bak / Gwang-bak multipliers).">🛑 STOP & WIN</button>
+          <button id="btn-stop" class="btn danger" type="button" title="End the round now and collect points from opponents (including any Pi-bak multipliers).">🛑 STOP & WIN</button>
         </div>
       </div>
     `;

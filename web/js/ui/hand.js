@@ -83,7 +83,7 @@ export function renderHand(state) {
 
   const s = me.score;
   const myScoreTip = `Need ${g.config.winScore}+ base pts to call Go/Stop.\n` +
-    `Brights: ${s.gwangScore} | Animals: ${s.yeolkkutScore} | Ribbons: ${s.ttiScore} | Pi: ${s.piScore} (${s.piCount} Pi)\n` +
+    `Gwang: ${s.gwangScore} | Animals: ${s.yeolkkutScore} | Ribbons: ${s.ttiScore} | Pi: ${s.piScore} (${s.piCount} Pi)\n` +
     `Base ${s.baseScore} + Go ${s.goBonus} × x${s.multiplier} = ${s.totalScore} pts`;
 
   const selectedCard = sortedHand.find((c) => c.id === state.selectedCardId) || null;

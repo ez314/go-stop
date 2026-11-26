@@ -50,10 +50,10 @@ func TestScoringAndSettlement(t *testing.T) {
 			{ID: "04-pi1", Month: 4, Type: TypePi, PiValue: 1},
 		},
 	}
-	// Bob has 0 Gwang (Gwang-bak x2) and 1 Pi <= 7 (Pi-bak x2) => 10 * 4 = 40
+	// Bob has 1 Pi <= 7 (Pi-bak x2; no Gwang-bak) => 10 * 2 = 20
 	settlements := CalculateSettlement(0, []*PlayerState{p0, p1}, cfg)
-	if settlements[0] != 40 || settlements[1] != -40 {
-		t.Fatalf("expected [40, -40], got %v", settlements)
+	if settlements[0] != 20 || settlements[1] != -20 {
+		t.Fatalf("expected [20, -20], got %v", settlements)
 	}
 }
 
