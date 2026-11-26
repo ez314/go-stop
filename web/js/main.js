@@ -2,6 +2,7 @@ import { subscribe, updateState, getState } from './store.js';
 import { connectWS, onEvents, sendMsg } from './net.js';
 import { toggleMute, playCardSlap, playChime, vibrate } from './audio.js';
 import { captureSnapshot, animateEvents } from './anim.js';
+import { renderCard } from './cards.js';
 import { renderLobby } from './ui/lobby.js';
 import { renderBoard } from './ui/board.js';
 import { renderHand } from './ui/hand.js';
@@ -105,11 +106,22 @@ document.addEventListener('visibilitychange', () => {
 requestWakeLock();
 
 let calloutTimer = null;
-function showCallout(text) {
-  calloutBanner.textContent = text;
+function showCallout(text, cards = null, durationMs = 1500) {
+  calloutBanner.innerHTML = '';
+  const titleEl = document.createElement('div');
+  titleEl.textContent = text;
+  calloutBanner.appendChild(titleEl);
+  if (cards && cards.length) {
+    const row = document.createElement('div');
+    row.className = 'callout-cards';
+    for (const c of cards) {
+      row.appendChild(renderCard(c));
+    }
+    calloutBanner.appendChild(row);
+  }
   calloutBanner.classList.remove('hidden');
   clearTimeout(calloutTimer);
-  calloutTimer = setTimeout(() => calloutBanner.classList.add('hidden'), 1500);
+  calloutTimer = setTimeout(() => calloutBanner.classList.add('hidden'), durationMs);
 }
 
 function summarizeEvents(events, game) {
@@ -131,7 +143,10 @@ function summarizeEvents(events, game) {
     if (ev.type === 'tdadak') special = '따닥 (Tdadak)!';
     if (ev.type === 'sweep') special = '판쓸이 (Sweep)!';
     if (ev.type === 'bomb') special = '폭탄 (Bomb)!';
-    if (ev.type === 'shake') special = '흔들기 (Shake)!';
+    if (ev.type === 'shake') {
+      const m = ev.cards && ev.cards[0] ? ` Month ${ev.cards[0].month}` : '';
+      special = `흔들기${m} (×2)!`;
+    }
     if (ev.type === 'go_called') special = ev.message;
     if (ev.type === 'player_folded' || ev.type === 'player_stayed') return ev.message;
   }
@@ -188,7 +203,12 @@ onEvents((events) => {
         bomb: '💣 폭탄! BOMB!',
         shake: '⚡ 흔들기! SHAKE!',
       };
-      if (labels[ev.type]) showCallout(labels[ev.type]);
+      if (ev.type === 'shake' && ev.cards && ev.cards.length) {
+        const m = ev.cards[0].month;
+        showCallout(`⚡ 흔들기! Month ${m} (×2)`, ev.cards, 2800);
+      } else if (labels[ev.type]) {
+        showCallout(labels[ev.type]);
+      }
     }
     if (ev.message) {
       showToast(ev.message);

@@ -319,8 +319,20 @@ func (s *GameState) handleShake(playerIdx int, cardID string) ([]Event, error) {
 		return nil, ErrCannotBombShake
 	}
 
+	var shakenCards []Card
+	for _, c := range p.Hand {
+		if c.Month == target.Month {
+			shakenCards = append(shakenCards, c)
+		}
+	}
+
 	p.ShakeCount++
-	events := []Event{{Type: "shake", PlayerIdx: playerIdx, Message: fmt.Sprintf("%s declared Shake! (x2)", p.Name)}}
+	events := []Event{{
+		Type:      "shake",
+		PlayerIdx: playerIdx,
+		Cards:     shakenCards,
+		Message:   fmt.Sprintf("%s declared Shake (흔들기) on Month %d! (×2)", p.Name, target.Month),
+	}}
 	playEvents, err := s.handlePlayCard(playerIdx, cardID)
 	if err != nil {
 		return nil, err
