@@ -1,5 +1,5 @@
 import { subscribe, updateState, getState } from './store.js';
-import { connectWS, onEvents } from './net.js';
+import { connectWS, onEvents, sendMsg } from './net.js';
 import { toggleMute, playCardSlap, playChime, vibrate } from './audio.js';
 import { captureSnapshot, animateEvents } from './anim.js';
 import { renderLobby } from './ui/lobby.js';
@@ -13,6 +13,7 @@ import { openRulesModal } from './ui/rulesModal.js';
 const lobbyView = document.getElementById('lobby-view');
 const gameView = document.getElementById('game-view');
 const statusPill = document.getElementById('status-pill');
+const hostMenuBtn = document.getElementById('host-menu-btn');
 const hintsBtn = document.getElementById('hints-btn');
 const qrBtn = document.getElementById('qr-btn');
 const rulesBtn = document.getElementById('rules-btn');
@@ -29,6 +30,26 @@ errorClose.addEventListener('click', () => updateState({ error: '' }));
 hintsBtn.addEventListener('click', () => {
   const next = !getState().hints;
   updateState({ hints: next });
+});
+
+hostMenuBtn.addEventListener('click', () => {
+  const root = document.getElementById('modal-root');
+  root.classList.remove('hidden');
+  root.innerHTML = `
+    <div class="modal-card">
+      <h3>Host Controls</h3>
+      <p style="font-size:0.86rem;color:var(--text-muted);margin:0 0 12px;">Re-deal this round or return everyone to the lobby:</p>
+      <div class="modal-actions">
+        <button id="host-restart-btn" class="btn" type="button">🔄 Restart Round</button>
+        <button id="host-lobby-btn" class="btn secondary" type="button">🏠 Back to Lobby</button>
+        <button id="host-cancel-btn" class="btn secondary" type="button">Cancel</button>
+      </div>
+    </div>
+  `;
+  const close = () => root.classList.add('hidden');
+  root.querySelector('#host-restart-btn').addEventListener('click', () => { close(); sendMsg({ type: 'restart_round' }); });
+  root.querySelector('#host-lobby-btn').addEventListener('click', () => { close(); sendMsg({ type: 'return_lobby' }); });
+  root.querySelector('#host-cancel-btn').addEventListener('click', close);
 });
 
 qrBtn.addEventListener('click', () => {
@@ -205,6 +226,7 @@ subscribe((state) => {
   }
 
   const inGame = Boolean(state.game);
+  hostMenuBtn.classList.toggle('hidden', !(inGame && state.seat === 0));
   lobbyView.classList.toggle('active', !inGame);
   gameView.classList.toggle('active', inGame);
 

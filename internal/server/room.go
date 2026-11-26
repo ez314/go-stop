@@ -99,6 +99,8 @@ func (r *Room) HandleMessage(c *Client, msg ClientMsg) {
 		r.handleNextRoundLocked(c)
 	case "return_lobby":
 		r.handleReturnLobbyLocked(c)
+	case "restart_round":
+		r.handleRestartRoundLocked(c)
 	case "add_bot":
 		r.handleAddBotLocked(c)
 	case "undo":
@@ -319,10 +321,13 @@ func (r *Room) handleNextRoundLocked(c *Client) {
 }
 
 func (r *Room) handleReturnLobbyLocked(c *Client) {
-	if r.findSeatByClient(c) < 0 {
+	seat := r.findSeatByClient(c)
+	if seat < 0 || r.game == nil {
 		return
 	}
-	if r.game == nil || r.game.Phase != game.PhaseRoundOver {
+	// Any seated player can return to lobby after round over; host (seat 0) can return mid-game too.
+	if r.game.Phase != game.PhaseRoundOver && seat != 0 {
+		c.Send(ServerMsg{Type: "error", Error: "only the host can return to lobby mid-round"})
 		return
 	}
 	r.game = nil
@@ -333,6 +338,17 @@ func (r *Room) handleReturnLobbyLocked(c *Client) {
 	for cl := range r.clients {
 		cl.Send(ServerMsg{Type: "state", Game: nil})
 	}
+}
+
+func (r *Room) handleRestartRoundLocked(c *Client) {
+	if r.findSeatByClient(c) != 0 {
+		c.Send(ServerMsg{Type: "error", Error: "only the host can restart the round"})
+		return
+	}
+	if r.game == nil {
+		return
+	}
+	r.startNewRoundLocked()
 }
 
 func (r *Room) handleAddBotLocked(c *Client) {
