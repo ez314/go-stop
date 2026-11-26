@@ -49,7 +49,7 @@ func NewRoom(lanURL string, lanURLs []string) *Room {
 		config:   game.DefaultRules(2),
 		undoSeat: -1,
 		undoUsed: make(map[int]bool),
-		botDelay: 1200 * time.Millisecond,
+		botDelay: 3 * time.Second,
 		rng:      mrand.New(mrand.NewSource(time.Now().UnixNano())),
 		lanURL:   lanURL,
 		lanURLs:  lanURLs,
