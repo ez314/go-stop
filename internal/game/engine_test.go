@@ -225,9 +225,9 @@ func TestFourPlayerGwangPalgi(t *testing.T) {
 	}
 }
 
-func TestSakeCupDualUse(t *testing.T) {
+func TestSakeCupAlwaysAnimal(t *testing.T) {
 	cfg := DefaultRules(2)
-	// Case 1: Player has 8 Pi + Sake Cup => Sake Cup as 2-Pi reaches 10 Pi (1 pt)!
+	// Even with 8 Pi, Sake Cup always counts as Animal (never 2-Pi)
 	p1 := &PlayerState{
 		Name: "Alice",
 		Captured: []Card{
@@ -242,11 +242,11 @@ func TestSakeCupDualUse(t *testing.T) {
 		},
 	}
 	b1 := CalculateScore(p1, cfg)
-	if !b1.SakeCupAsPi || b1.PiCount != 10 || b1.PiScore != 1 {
-		t.Fatalf("expected Sake Cup counted as 2-Pi (10 Pi = 1 pt), got %+v", b1)
+	if b1.YeolkkutCount != 1 || b1.PiCount != 8 || b1.PiScore != 0 {
+		t.Fatalf("expected Sake Cup counted strictly as Animal (Pi=8, Animal=1), got %+v", b1)
 	}
 
-	// Case 2: Player has 4 other Animals + Sake Cup (0 Pi) => Sake Cup as 5th Animal scores 1 pt!
+	// With 4 other Animals + Sake Cup => 5 Animals = 1 pt
 	p2 := &PlayerState{
 		Name: "Bob",
 		Captured: []Card{
@@ -258,7 +258,7 @@ func TestSakeCupDualUse(t *testing.T) {
 		},
 	}
 	b2 := CalculateScore(p2, cfg)
-	if b2.SakeCupAsPi || b2.YeolkkutCount != 5 || b2.YeolkkutScore != 1 {
+	if b2.YeolkkutCount != 5 || b2.YeolkkutScore != 1 {
 		t.Fatalf("expected Sake Cup counted as 5th Animal (1 pt), got %+v", b2)
 	}
 }

@@ -33,9 +33,6 @@ export function cardTooltip(card) {
       }
       return `${base} · 광 (Gwang) — 3 Gwang = 3 pts (2 w/ Rain), 4 = 4 pts, 5 = 15 pts.`;
     case 'yeolkkut':
-      if (card.isSakeCup) {
-        return `${base} · 국진 (Sake Cup) — Dual-use! Automatically counts as EITHER 1 Animal OR 2 Pi (whichever scores higher or helps avoid Pi-bak).`;
-      }
       if (card.isBird) {
         return `${base} · 열끗 (Bird / Godori) — 5+ Animals = 1+ pts. Collect all 3 birds (Months 2, 4, 8) for Godori (+5 pts)!`;
       }

@@ -37,7 +37,7 @@ export function getFullScoringHtml() {
   return `
     <div class="rules-detail-grid">
       <div><strong>광 (Gwang)</strong>: 3 Gwang = 3 pts (2 pts with Dec Rain Gwang) · 4 = 4 pts · 5 = 15 pts.</div>
-      <div><strong>열 (Animals / Yeolkkut)</strong>: 5+ cards = 1 pt (+1 each extra). <em>Godori</em> (Feb, Apr, Aug birds) = +5 pts. <em>Sake Cup (국진)</em> counts as 1 Animal OR 2 Pi.</div>
+      <div><strong>열 (Animals / Yeolkkut)</strong>: 5+ cards = 1 pt (+1 each extra). <em>Godori</em> (Feb, Apr, Aug birds) = +5 pts.</div>
       <div><strong>띠 (Ribbons / Tti)</strong>: 5+ cards = 1 pt (+1 each extra). <em>Hongdan</em> (1,2,3 red poetry), <em>Cheongdan</em> (6,9,10 blue), or <em>Chodan</em> (4,5,7 plain red) = +3 pts each.</div>
       <div><strong>피 (Junk / Pi)</strong>: 10+ Pi = 1 pt (+1 each extra). Double-Pi counts as 2 Pi.</div>
       <div><strong>Go &amp; Multipliers</strong>: 1 Go = +1 pt · 2 Go = +2 pts · 3+ Go = +N pts &amp; x2 per Go (3 Go = x2, 4 Go = x4...). Shake / Bomb = x2 each.</div>
