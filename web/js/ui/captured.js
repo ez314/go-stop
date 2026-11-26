@@ -19,7 +19,7 @@ function renderCapturedGroups(captured, score, cfg) {
     {
       key: 'gwang',
       label: `광(${score.gwangCount})`,
-      tip: `Gwang (광): ${score.gwangScore} pts. 3 Gwang = 3 pts (2 w/ Rain) · 4 = 4 pts · 5 = 15 pts.`,
+      tip: `Gwang (광): ${score.gwangScore} pts. 3 Gwang = 3 pts (2 w/ Rain) · 4 = 4 pts · 5 = 25 pts.`,
     },
     {
       key: 'yeolkkut',

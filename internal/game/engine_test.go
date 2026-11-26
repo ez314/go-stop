@@ -280,3 +280,66 @@ func TestBotPlaysFullGame(t *testing.T) {
 		t.Fatalf("bot game did not finish, phase=%s", s.Phase)
 	}
 }
+
+func TestFiveGwangAndThreeSsaAndSsakSeuRi(t *testing.T) {
+	cfg := DefaultRules(2)
+	// 1. 5 Gwang = 25 points
+	p5g := &PlayerState{
+		Name: "Alice",
+		Captured: []Card{
+			{ID: "01-gwang", Month: 1, Type: TypeGwang},
+			{ID: "03-gwang", Month: 3, Type: TypeGwang},
+			{ID: "08-gwang", Month: 8, Type: TypeGwang},
+			{ID: "11-gwang", Month: 11, Type: TypeGwang},
+			{ID: "12-gwang", Month: 12, Type: TypeGwang, IsRain: true},
+		},
+	}
+	if b := CalculateScore(p5g, cfg); b.GwangScore != 25 || b.BaseScore != 25 {
+		t.Fatalf("expected 5 Gwang = 25 pts, got %+v", b)
+	}
+
+	// 2. 3x Ssa = auto-win 3 points
+	s := &GameState{
+		Config: cfg,
+		Players: []*PlayerState{
+			{Name: "P1", PpeokCount: 2, Hand: []Card{{ID: "01-gwang", Month: 1, Type: TypeGwang}, {ID: "02-pi1", Month: 2, Type: TypePi, PiValue: 1}}},
+			{Name: "P2", Hand: []Card{{ID: "03-pi1", Month: 3, Type: TypePi, PiValue: 1}}},
+		},
+		Field:       []Card{{ID: "01-tti", Month: 1, Type: TypeTti}},
+		DrawPile:    []Card{{ID: "01-pi1", Month: 1, Type: TypePi, PiValue: 1}, {ID: "05-pi1", Month: 5, Type: TypePi, PiValue: 1}},
+		CurrentTurn: 0,
+		Phase:       PhasePlayHand,
+	}
+	if _, err := ApplyAction(s, 0, Action{Type: ActionPlayCard, CardID: "01-gwang"}); err != nil {
+		t.Fatalf("3x ssa error: %v", err)
+	}
+	if s.Phase != PhaseRoundOver || s.Result == nil || s.Result.Reason != "three_ssa" || s.Result.Settlements[0] != 3 || s.Result.Settlements[1] != -3 {
+		t.Fatalf("expected 3x ssa auto-win 3 pts, got phase=%s res=%+v", s.Phase, s.Result)
+	}
+
+	// 3. Ssak-seu-ri: 2 cards on field, play 1 match + flip 2nd match -> empty field -> steal 1 Pi!
+	s2 := &GameState{
+		Config: cfg,
+		Players: []*PlayerState{
+			{Name: "P1", Hand: []Card{{ID: "01-gwang", Month: 1, Type: TypeGwang}, {ID: "05-pi1", Month: 5, Type: TypePi, PiValue: 1}}},
+			{Name: "P2", Hand: []Card{{ID: "06-pi1", Month: 6, Type: TypePi, PiValue: 1}}, Captured: []Card{{ID: "07-pi1", Month: 7, Type: TypePi, PiValue: 1}}},
+		},
+		Field:       []Card{{ID: "01-tti", Month: 1, Type: TypeTti}, {ID: "02-tti", Month: 2, Type: TypeTti}},
+		DrawPile:    []Card{{ID: "02-pi1", Month: 2, Type: TypePi, PiValue: 1}, {ID: "08-pi1", Month: 8, Type: TypePi, PiValue: 1}},
+		CurrentTurn: 0,
+		Phase:       PhasePlayHand,
+	}
+	evs, err := ApplyAction(s2, 0, Action{Type: ActionPlayCard, CardID: "01-gwang"})
+	if err != nil {
+		t.Fatalf("ssak-seu-ri error: %v", err)
+	}
+	hasSweep := false
+	for _, ev := range evs {
+		if ev.Type == "sweep" {
+			hasSweep = true
+		}
+	}
+	if !hasSweep || len(s2.Field) != 0 || len(s2.Players[1].Captured) != 0 {
+		t.Fatalf("expected ssak-seu-ri stealing P2's Pi, sweep=%v field=%d p2cap=%d", hasSweep, len(s2.Field), len(s2.Players[1].Captured))
+	}
+}

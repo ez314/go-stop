@@ -96,7 +96,7 @@ func NewGameWithDealer(playerNames []string, cfg RuleConfig, dealerIdx int, rng 
 	}
 	s.Field = remainingField
 
-	// Check Chongtong (4 cards of the same month in a player's starting hand)
+	// Check Chongtong (4 cards of the same month in a player's starting hand -> auto-win 3 pts)
 	if cfg.EnableChongtong {
 		for i, p := range s.Players {
 			if hasChongtong(p.Hand) {
@@ -104,9 +104,9 @@ func NewGameWithDealer(playerNames []string, cfg RuleConfig, dealerIdx int, rng 
 				settlements := make([]int, len(s.Players))
 				for j := range s.Players {
 					if j == i {
-						settlements[j] = 10 * (len(s.Players) - 1)
+						settlements[j] = 3 * (len(s.Players) - 1)
 					} else {
-						settlements[j] = -10
+						settlements[j] = -3
 					}
 				}
 				s.Result = &RoundResult{
@@ -117,7 +117,7 @@ func NewGameWithDealer(playerNames []string, cfg RuleConfig, dealerIdx int, rng 
 				events = append(events, Event{
 					Type:      "round_ended",
 					PlayerIdx: i,
-					Message:   fmt.Sprintf("%s wins by Chongtong!", p.Name),
+					Message:   fmt.Sprintf("%s wins by Chongtong (4-of-a-kind, +3 pts)!", p.Name),
 				})
 				return s, events, nil
 			}
@@ -492,6 +492,29 @@ func (s *GameState) resolveFlip(playerIdx int) []Event {
 					s.Pending.HandMatched = nil
 					p.PpeokCount++
 					events = append(events, Event{Type: "ppeok", PlayerIdx: playerIdx, Message: "Ssa! (쌌다)"})
+					// 3x Ssa by the same player = instant auto-win (3 pts from each active opponent)
+					if p.PpeokCount >= 3 {
+						s.Pending = nil
+						s.Phase = PhaseRoundOver
+						settlements := make([]int, len(s.Players))
+						for j, opp := range s.Players {
+							if j != playerIdx && !opp.Folded {
+								settlements[j] = -3
+								settlements[playerIdx] += 3
+							}
+						}
+						s.Result = &RoundResult{
+							WinnerIdx:   playerIdx,
+							Reason:      "three_ssa",
+							Settlements: settlements,
+						}
+						events = append(events, Event{
+							Type:      "round_ended",
+							PlayerIdx: playerIdx,
+							Message:   fmt.Sprintf("%s got 3× Ssa (삼뻑) and wins (+3 pts)!", p.Name),
+						})
+						return events
+					}
 					events = append(events, s.finalizeTurn(playerIdx, nil)...)
 					return events
 				}
@@ -576,9 +599,9 @@ func (s *GameState) finalizeTurn(playerIdx int, flipCaptured []Card) []Event {
 		events = append(events, Event{Type: "captured", PlayerIdx: playerIdx, Cards: allCaptured})
 	}
 
-	// Check Sweep (판쓸이): field is empty and game isn't on its very last draw
+	// Check Ssak-seu-ri (싹쓸이): field is empty and game isn't on its very last draw
 	if len(s.Field) == 0 && len(s.DrawPile) > 0 && len(allCaptured) > 0 {
-		events = append(events, Event{Type: "sweep", PlayerIdx: playerIdx, Message: "Sweep! (판쓸이)"})
+		events = append(events, Event{Type: "sweep", PlayerIdx: playerIdx, Message: "Ssak-seu-ri! (싹쓸이)"})
 		events = append(events, s.stealPiFromOpponents(playerIdx, 1)...)
 	}
 

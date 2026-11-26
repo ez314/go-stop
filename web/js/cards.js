@@ -29,9 +29,9 @@ export function cardTooltip(card) {
   switch (card.type) {
     case 'gwang':
       if (card.isRain) {
-        return `${base} · 비광 (Rain Gwang) — 3 Gwang w/ Rain = 2 pts, 4 Gwang = 4 pts, 5 Gwang = 15 pts.`;
+        return `${base} · 비광 (Rain Gwang) — 3 Gwang w/ Rain = 2 pts, 4 Gwang = 4 pts, 5 Gwang = 25 pts.`;
       }
-      return `${base} · 광 (Gwang) — 3 Gwang = 3 pts (2 w/ Rain), 4 = 4 pts, 5 = 15 pts.`;
+      return `${base} · 광 (Gwang) — 3 Gwang = 3 pts (2 w/ Rain), 4 = 4 pts, 5 = 25 pts.`;
     case 'yeolkkut':
       if (card.isBird) {
         return `${base} · 열끗 (Bird / Godori) — 5+ Animals = 1+ pts. Collect all 3 birds (Months 2, 4, 8) for Godori (+5 pts)!`;

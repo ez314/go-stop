@@ -141,7 +141,7 @@ function summarizeEvents(events, game) {
     if (ev.type === 'jjok') special = '딱 (Ddak)!';
     if (ev.type === 'ppeok') special = '쌌다 (Ssa)!';
     if (ev.type === 'tdadak') special = '따닥 (Tdadak)!';
-    if (ev.type === 'sweep') special = '판쓸이 (Sweep)!';
+    if (ev.type === 'sweep') special = '싹쓸이 (Ssak-seu-ri)!';
     if (ev.type === 'bomb') special = '폭탄 (Bomb)!';
     if (ev.type === 'shake') {
       const m = ev.cards && ev.cards[0] ? ` Month ${ev.cards[0].month}` : '';
@@ -199,7 +199,7 @@ onEvents((events) => {
         jjok: '✨ 딱! DDAK!',
         ppeok: '💥 쌌다! SSA!',
         tdadak: '⚡ 따닥! TDADAK!',
-        sweep: '🧹 판쓸이! SWEEP!',
+        sweep: '🧹 싹쓸이! SSAK-SEU-RI!',
         bomb: '💣 폭탄! BOMB!',
         shake: '⚡ 흔들기! SHAKE!',
       };

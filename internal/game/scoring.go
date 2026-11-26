@@ -67,7 +67,7 @@ func CalculateScore(p *PlayerState, cfg RuleConfig) ScoreBreakdown {
 	// Gwang scoring
 	switch {
 	case b.GwangCount >= 5:
-		b.GwangScore = 15
+		b.GwangScore = 25
 	case b.GwangCount == 4:
 		b.GwangScore = 4
 	case b.GwangCount == 3:
