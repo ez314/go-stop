@@ -20,7 +20,7 @@ export function renderScoreboard(state) {
     const winner = g.players[res.winnerIdx];
     title = `${winner.name} Wins!`;
     if (res.reason === 'chongtong') {
-      subtitle = 'Instant win by Chongtong (4-of-a-kind in hand, 3 pts)!';
+      subtitle = 'Instant win by Chongtong (4-of-a-kind in hand, 10 pts)!';
     } else if (res.reason === 'three_ssa') {
       subtitle = 'Instant win by 3× Ssa (삼뻑, 3 pts)!';
     } else {

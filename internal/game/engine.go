@@ -96,7 +96,7 @@ func NewGameWithDealer(playerNames []string, cfg RuleConfig, dealerIdx int, rng 
 	}
 	s.Field = remainingField
 
-	// Check Chongtong (4 cards of the same month in a player's starting hand -> auto-win 3 pts)
+	// Check Chongtong (4 cards of the same month in a player's starting hand -> auto-win 10 pts)
 	if cfg.EnableChongtong {
 		for i, p := range s.Players {
 			if hasChongtong(p.Hand) {
@@ -104,9 +104,9 @@ func NewGameWithDealer(playerNames []string, cfg RuleConfig, dealerIdx int, rng 
 				settlements := make([]int, len(s.Players))
 				for j := range s.Players {
 					if j == i {
-						settlements[j] = 3 * (len(s.Players) - 1)
+						settlements[j] = 10 * (len(s.Players) - 1)
 					} else {
-						settlements[j] = -3
+						settlements[j] = -10
 					}
 				}
 				s.Result = &RoundResult{
@@ -117,7 +117,7 @@ func NewGameWithDealer(playerNames []string, cfg RuleConfig, dealerIdx int, rng 
 				events = append(events, Event{
 					Type:      "round_ended",
 					PlayerIdx: i,
-					Message:   fmt.Sprintf("%s wins by Chongtong (4-of-a-kind, +3 pts)!", p.Name),
+					Message:   fmt.Sprintf("%s wins by Chongtong (4-of-a-kind, +10 pts)!", p.Name),
 				})
 				return s, events, nil
 			}
