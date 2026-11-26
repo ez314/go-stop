@@ -31,6 +31,7 @@ type Card struct {
 	Name      string    `json:"name"`      // Korean/English display name
 	IsBird    bool      `json:"isBird"`    // Feb, Apr, Aug birds (Godori)
 	IsRain    bool      `json:"isRain"`    // Dec Gwang (Bi-gwang)
+	IsSakeCup bool      `json:"isSakeCup"` // Sep Sake Cup (국진): counts as 1 Animal OR 2 Pi
 	IsBonus   bool      `json:"isBonus"`   // Joker/Service card
 	RibbonSet RibbonSet `json:"ribbonSet"` // Special ribbon set if applicable
 }
@@ -87,7 +88,7 @@ func NewDeck(includeBonus bool) []Card {
 		{ID: "08-pi2", Month: 8, Type: TypePi, PiValue: 1, Name: "Moon Pi"},
 
 		// Month 9: Chrysanthemum (국화)
-		{ID: "09-yeol", Month: 9, Type: TypeYeolkkut, Name: "Sake Cup"},
+		{ID: "09-yeol", Month: 9, Type: TypeYeolkkut, IsSakeCup: true, Name: "Sake Cup"},
 		{ID: "09-tti", Month: 9, Type: TypeTti, RibbonSet: RibbonCheongdan, Name: "Mum Blue"},
 		{ID: "09-pi1", Month: 9, Type: TypePi, PiValue: 1, Name: "Mum Pi"},
 		{ID: "09-pi2", Month: 9, Type: TypePi, PiValue: 1, Name: "Mum Pi"},

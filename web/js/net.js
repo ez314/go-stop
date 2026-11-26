@@ -40,7 +40,7 @@ export function connectWS() {
         updateState({ lobby: msg.lobby });
         break;
       case 'state':
-        updateState({ game: msg.game || null, error: '' });
+        updateState({ game: msg.game || null, canUndo: Boolean(msg.canUndo), error: '' });
         if (msg.events && msg.events.length) {
           for (const fn of eventHandlers) fn(msg.events);
         }

@@ -11,6 +11,7 @@ const state = {
   game: null,
   error: '',
   hints: savedHints === null ? true : savedHints === 'true',
+  canUndo: false,
   selectedCardId: '',
   lastMove: '',
 };

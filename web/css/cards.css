@@ -37,6 +37,28 @@
   pointer-events: none;
 }
 
+.card-month-badge {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #fef08a;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+body.hints-off .card-month-badge {
+  display: none;
+}
+
 .hwatu-card.bonus-card {
   background: linear-gradient(145deg, #7e22ce 0%, #b91c1c 100%);
   border-color: #f5c542;

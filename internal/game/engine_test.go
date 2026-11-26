@@ -219,3 +219,59 @@ func TestFourPlayerGwangPalgi(t *testing.T) {
 		t.Fatalf("4P game did not finish, phase=%s", s.Phase)
 	}
 }
+
+func TestSakeCupDualUse(t *testing.T) {
+	cfg := DefaultRules(2)
+	// Case 1: Player has 8 Pi + Sake Cup => Sake Cup as 2-Pi reaches 10 Pi (1 pt)!
+	p1 := &PlayerState{
+		Name: "Alice",
+		Captured: []Card{
+			{ID: "09-yeol", Month: 9, Type: TypeYeolkkut, IsSakeCup: true},
+			{ID: "01-pi1", Month: 1, Type: TypePi, PiValue: 1},
+			{ID: "01-pi2", Month: 1, Type: TypePi, PiValue: 1},
+			{ID: "02-pi1", Month: 2, Type: TypePi, PiValue: 1},
+			{ID: "02-pi2", Month: 2, Type: TypePi, PiValue: 1},
+			{ID: "03-pi1", Month: 3, Type: TypePi, PiValue: 1},
+			{ID: "03-pi2", Month: 3, Type: TypePi, PiValue: 1},
+			{ID: "11-pi2x", Month: 11, Type: TypePi, PiValue: 2},
+		},
+	}
+	b1 := CalculateScore(p1, cfg)
+	if !b1.SakeCupAsPi || b1.PiCount != 10 || b1.PiScore != 1 {
+		t.Fatalf("expected Sake Cup counted as 2-Pi (10 Pi = 1 pt), got %+v", b1)
+	}
+
+	// Case 2: Player has 4 other Animals + Sake Cup (0 Pi) => Sake Cup as 5th Animal scores 1 pt!
+	p2 := &PlayerState{
+		Name: "Bob",
+		Captured: []Card{
+			{ID: "09-yeol", Month: 9, Type: TypeYeolkkut, IsSakeCup: true},
+			{ID: "02-yeol", Month: 2, Type: TypeYeolkkut},
+			{ID: "04-yeol", Month: 4, Type: TypeYeolkkut},
+			{ID: "05-yeol", Month: 5, Type: TypeYeolkkut},
+			{ID: "06-yeol", Month: 6, Type: TypeYeolkkut},
+		},
+	}
+	b2 := CalculateScore(p2, cfg)
+	if b2.SakeCupAsPi || b2.YeolkkutCount != 5 || b2.YeolkkutScore != 1 {
+		t.Fatalf("expected Sake Cup counted as 5th Animal (1 pt), got %+v", b2)
+	}
+}
+
+func TestBotPlaysFullGame(t *testing.T) {
+	rng := rand.New(rand.NewSource(7))
+	cfg := DefaultRules(3)
+	s, _, err := NewGame([]string{"Bot1", "Bot2", "Bot3"}, cfg, rng)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for steps := 0; steps < 250 && s.Phase != PhaseRoundOver; steps++ {
+		act := ChooseBotAction(s, s.CurrentTurn)
+		if _, err := ApplyAction(s, s.CurrentTurn, act); err != nil {
+			t.Fatalf("bot step %d (%s) error: %v", steps, s.Phase, err)
+		}
+	}
+	if s.Phase != PhaseRoundOver {
+		t.Fatalf("bot game did not finish, phase=%s", s.Phase)
+	}
+}

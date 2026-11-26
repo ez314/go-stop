@@ -195,6 +195,7 @@ subscribe((state) => {
 
   hintsBtn.textContent = state.hints ? '💡 Hints: ON' : '💡 Hints: OFF';
   hintsBtn.classList.toggle('active', state.hints);
+  document.body.classList.toggle('hints-off', !state.hints);
 
   if (state.error) {
     errorText.textContent = state.error;

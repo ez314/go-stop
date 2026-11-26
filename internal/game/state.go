@@ -123,6 +123,38 @@ type PlayerView struct {
 	Result         *RoundResult       `json:"result,omitempty"`
 }
 
+// Clone creates a deep copy of GameState (preserving rng reference) for Undo snapshots.
+func (s *GameState) Clone() *GameState {
+	if s == nil {
+		return nil
+	}
+	cp := *s
+	cp.Field = append([]Card(nil), s.Field...)
+	cp.DrawPile = append([]Card(nil), s.DrawPile...)
+	cp.Players = make([]*PlayerState, len(s.Players))
+	for i, p := range s.Players {
+		pCopy := *p
+		pCopy.Hand = append([]Card(nil), p.Hand...)
+		pCopy.Captured = append([]Card(nil), p.Captured...)
+		cp.Players[i] = &pCopy
+	}
+	if s.Pending != nil {
+		pend := *s.Pending
+		if s.Pending.PlayedCard != nil {
+			c := *s.Pending.PlayedCard
+			pend.PlayedCard = &c
+		}
+		if s.Pending.FlippedCard != nil {
+			c := *s.Pending.FlippedCard
+			pend.FlippedCard = &c
+		}
+		pend.HandMatched = append([]Card(nil), s.Pending.HandMatched...)
+		pend.ChoiceOptions = append([]Card(nil), s.Pending.ChoiceOptions...)
+		cp.Pending = &pend
+	}
+	return &cp
+}
+
 // ViewFor builds a sanitized PlayerView for seat playerIdx (or -1 for spectator).
 func (s *GameState) ViewFor(playerIdx int) PlayerView {
 	pubPlayers := make([]PublicPlayerView, len(s.Players))

@@ -19,6 +19,7 @@ type LobbyPlayer struct {
 	Name        string `json:"name"`
 	Ready       bool   `json:"ready"`
 	Connected   bool   `json:"connected"`
+	IsBot       bool   `json:"isBot,omitempty"`
 	TotalPoints int    `json:"totalPoints"`
 }
 
@@ -38,6 +39,7 @@ type ServerMsg struct {
 	Token      string           `json:"token,omitempty"`
 	Seat       int              `json:"seat"`
 	Spectating bool             `json:"spectating,omitempty"`
+	CanUndo    bool             `json:"canUndo,omitempty"`
 	Lobby      *LobbyView       `json:"lobby,omitempty"`
 	Game       *game.PlayerView `json:"game,omitempty"`
 	Events     []game.Event     `json:"events,omitempty"`

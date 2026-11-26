@@ -33,6 +33,7 @@ export function renderScoreboard(state) {
       if (b.chodan) items.push('🟧 Chodan (+3)');
       if (b.ttiCount >= 5) items.push(`${b.ttiCount} Ribbons (+${b.ttiCount - 4})`);
       if (b.piScore > 0) items.push(`${b.piCount} Pi (+${b.piScore})`);
+      if (b.sakeCupAsPi) items.push('🍶 Sake Cup → 2 Pi');
       if (b.goCount > 0) items.push(`${b.goCount} Go`);
       if (b.multiplier > 1) items.push(`Multiplier ×${b.multiplier}`);
       if (items.length) {

@@ -68,11 +68,12 @@ export function renderLobby(container, state) {
       if (p) {
         const you = i === state.seat ? ' (You)' : '';
         const hostTag = i === 0 ? `<span class="host-tag">👑 (Host)</span>` : '';
-        const conn = p.connected ? '🟢' : '🔴';
+        const botTag = p.isBot ? `<span class="host-tag" style="background:rgba(56,189,248,0.18);color:#7dd3fc;border-color:rgba(56,189,248,0.45);">🤖 Bot</span>` : '';
+        const conn = p.isBot ? '🤖' : (p.connected ? '🟢' : '🔴');
         const kickBtn = (isHost && i > 0) ? `<button class="btn secondary kick-btn" data-seat="${i}" type="button" style="padding:3px 8px;font-size:0.75rem;margin-left:8px;">Remove</button>` : '';
         html += `
           <li class="player-item">
-            <span>${conn} <strong>${escapeHtml(p.name)}</strong>${you}${hostTag}</span>
+            <span>${conn} <strong>${escapeHtml(p.name)}</strong>${you}${hostTag}${botTag}</span>
             <span>${p.totalPoints} pts${kickBtn}</span>
           </li>
         `;
@@ -84,10 +85,15 @@ export function renderLobby(container, state) {
 
     if (seated) {
       const full = lobby.players.length === lobby.config.playerCount;
-      html += `<div class="form-row" style="justify-content:space-between;">`;
+      html += `<div class="form-row" style="justify-content:space-between;flex-wrap:wrap;">`;
       html += `<button id="leave-btn" class="btn secondary" type="button">Leave</button>`;
       if (isHost) {
+        html += `<div style="display:flex;gap:8px;">`;
+        if (!full) {
+          html += `<button id="add-bot-btn" class="btn secondary" type="button" title="Fill an open seat with an AI bot">+ Add Bot</button>`;
+        }
         html += `<button id="start-btn" class="btn" type="button" ${full ? '' : 'disabled'}>Start Round</button>`;
+        html += `</div>`;
       } else {
         html += `<span style="align-self:center;color:var(--text-muted);font-size:0.88rem;">Waiting for host to start...</span>`;
       }
@@ -156,6 +162,11 @@ export function renderLobby(container, state) {
   const leaveBtn = container.querySelector('#leave-btn');
   if (leaveBtn) {
     leaveBtn.addEventListener('click', () => sendMsg({ type: 'leave' }));
+  }
+
+  const addBotBtn = container.querySelector('#add-bot-btn');
+  if (addBotBtn) {
+    addBotBtn.addEventListener('click', () => sendMsg({ type: 'add_bot' }));
   }
 
   const startBtn = container.querySelector('#start-btn');

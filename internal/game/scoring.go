@@ -18,6 +18,7 @@ type ScoreBreakdown struct {
 
 	PiCount       int  `json:"piCount"`
 	PiScore       int  `json:"piScore"`
+	SakeCupAsPi   bool `json:"sakeCupAsPi"` // True when Sep Sake Cup (국진) is counted as 2-Pi
 
 	BaseScore     int  `json:"baseScore"`
 	GoCount       int  `json:"goCount"`
@@ -27,12 +28,38 @@ type ScoreBreakdown struct {
 }
 
 // CalculateScore computes a player's current score from their captured cards and multipliers.
+// Automatically optimizes the Month 9 Sake Cup (국진) as either 1 Animal or 2 Pi.
 func CalculateScore(p *PlayerState, cfg RuleConfig) ScoreBreakdown {
+	hasSakeCup := false
+	for _, c := range p.Captured {
+		if c.IsSakeCup {
+			hasSakeCup = true
+			break
+		}
+	}
+	asAnimal := calculateScoreWithOption(p, false)
+	if !hasSakeCup {
+		return asAnimal
+	}
+	asPi := calculateScoreWithOption(p, true)
+	// Prefer higher BaseScore; on tie, prefer counting as 2-Pi (helps avoid Pi-bak)
+	if asPi.BaseScore >= asAnimal.BaseScore {
+		return asPi
+	}
+	return asAnimal
+}
+
+func calculateScoreWithOption(p *PlayerState, sakeCupAsPi bool) ScoreBreakdown {
 	var b ScoreBreakdown
 	b.GoCount = p.GoCount
+	b.SakeCupAsPi = sakeCupAsPi
 
 	var birds, hongdan, cheongdan, chodan int
 	for _, c := range p.Captured {
+		if c.IsSakeCup && sakeCupAsPi {
+			b.PiCount += 2
+			continue
+		}
 		switch c.Type {
 		case TypeGwang:
 			b.GwangCount++
@@ -133,11 +160,11 @@ func CalculateScore(p *PlayerState, cfg RuleConfig) ScoreBreakdown {
 }
 
 // CountSellableCards returns the Gwang-palgi (광팔기) payout value of a hand in 4P mode:
-// +1 point per Gwang or Double-Pi card sold when folding early.
+// +1 point per Gwang, Double-Pi, or Sake Cup (국진) sold when folding early.
 func CountSellableCards(hand []Card) int {
 	pts := 0
 	for _, c := range hand {
-		if c.Type == TypeGwang || (c.Type == TypePi && c.PiValue >= 2) {
+		if c.Type == TypeGwang || c.IsSakeCup || (c.Type == TypePi && c.PiValue >= 2) {
 			pts++
 		}
 	}

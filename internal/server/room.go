@@ -16,32 +16,41 @@ type seatPlayer struct {
 	token       string
 	name        string
 	ready       bool
+	isBot       bool
 	totalPoints int
 	client      *Client
 }
 
-// Room manages a single LAN Go-Stop table, player seats, reconnections, and game state.
+// Room manages a single LAN Go-Stop table, player seats, reconnections, bots, undo, and game state.
 type Room struct {
-	mu      sync.Mutex
-	clients map[*Client]bool
-	seats   []*seatPlayer
-	specs   map[*Client]bool
-	config  game.RuleConfig
-	game    *game.GameState
-	rng     *mrand.Rand
-	lanURL  string
-	lanURLs []string
+	mu          sync.Mutex
+	clients     map[*Client]bool
+	seats       []*seatPlayer
+	specs       map[*Client]bool
+	config      game.RuleConfig
+	game        *game.GameState
+	gameGen     int // incremented per round / undo to cancel stale bot timers
+	undoSnap    *game.GameState
+	undoSeat    int
+	undoUsed    map[int]bool
+	botDelay    time.Duration
+	rng         *mrand.Rand
+	lanURL      string
+	lanURLs     []string
 }
 
 // NewRoom creates a new LAN Go-Stop room with default 2-player Matgo rules.
 func NewRoom(lanURL string, lanURLs []string) *Room {
 	return &Room{
-		clients: make(map[*Client]bool),
-		specs:   make(map[*Client]bool),
-		config:  game.DefaultRules(2),
-		rng:     mrand.New(mrand.NewSource(time.Now().UnixNano())),
-		lanURL:  lanURL,
-		lanURLs: lanURLs,
+		clients:  make(map[*Client]bool),
+		specs:    make(map[*Client]bool),
+		config:   game.DefaultRules(2),
+		undoSeat: -1,
+		undoUsed: make(map[int]bool),
+		botDelay: 1200 * time.Millisecond,
+		rng:      mrand.New(mrand.NewSource(time.Now().UnixNano())),
+		lanURL:   lanURL,
+		lanURLs:  lanURLs,
 	}
 }
 
@@ -90,6 +99,10 @@ func (r *Room) HandleMessage(c *Client, msg ClientMsg) {
 		r.handleNextRoundLocked(c)
 	case "return_lobby":
 		r.handleReturnLobbyLocked(c)
+	case "add_bot":
+		r.handleAddBotLocked(c)
+	case "undo":
+		r.handleUndoLocked(c)
 	case "action":
 		if msg.Action == nil {
 			c.Send(ServerMsg{Type: "error", Error: "missing action"})
@@ -287,10 +300,63 @@ func (r *Room) handleReturnLobbyLocked(c *Client) {
 		return
 	}
 	r.game = nil
+	r.gameGen++
+	r.undoSnap = nil
+	r.undoSeat = -1
 	r.broadcastLobbyLocked()
 	for cl := range r.clients {
 		cl.Send(ServerMsg{Type: "state", Game: nil})
 	}
+}
+
+func (r *Room) handleAddBotLocked(c *Client) {
+	if r.findSeatByClient(c) != 0 {
+		c.Send(ServerMsg{Type: "error", Error: "only the host can add a bot"})
+		return
+	}
+	if r.game != nil {
+		c.Send(ServerMsg{Type: "error", Error: "cannot add a bot during a round"})
+		return
+	}
+	if len(r.seats) >= r.config.PlayerCount {
+		c.Send(ServerMsg{Type: "error", Error: "table is already full"})
+		return
+	}
+	botNum := 1
+	for _, sp := range r.seats {
+		if sp.isBot {
+			botNum++
+		}
+	}
+	r.seats = append(r.seats, &seatPlayer{
+		token: generateToken(),
+		name:  fmt.Sprintf("Bot %d", botNum),
+		isBot: true,
+	})
+	r.broadcastLobbyLocked()
+}
+
+func (r *Room) handleUndoLocked(c *Client) {
+	seat := r.findSeatByClient(c)
+	if seat < 0 || r.game == nil || r.game.Phase == game.PhaseRoundOver {
+		return
+	}
+	if r.undoSnap == nil || r.undoSeat != seat || r.undoUsed[seat] {
+		c.Send(ServerMsg{Type: "error", Error: "undo is not available right now"})
+		return
+	}
+	r.game = r.undoSnap.Clone()
+	r.gameGen++
+	r.undoSnap = nil
+	r.undoSeat = -1
+	r.undoUsed[seat] = true
+	events := []game.Event{{
+		Type:      "undo",
+		PlayerIdx: seat,
+		Message:   fmt.Sprintf("%s undid their last move (무르기)", r.seats[seat].name),
+	}}
+	r.broadcastGameLocked(events)
+	r.scheduleBotTurnLocked()
 }
 
 func (r *Room) startNewRoundLocked() {
@@ -305,11 +371,16 @@ func (r *Room) startNewRoundLocked() {
 		return
 	}
 	r.game = g
+	r.gameGen++
+	r.undoSnap = nil
+	r.undoSeat = -1
+	r.undoUsed = make(map[int]bool)
 	if r.game.Phase == game.PhaseRoundOver && r.game.Result != nil {
 		r.applyRoundSettlementLocked()
 	}
 	r.broadcastLobbyLocked()
 	r.broadcastGameLocked(events)
+	r.scheduleBotTurnLocked()
 }
 
 func (r *Room) handleActionLocked(c *Client, act game.Action) {
@@ -322,16 +393,63 @@ func (r *Room) handleActionLocked(c *Client, act game.Action) {
 		c.Send(ServerMsg{Type: "error", Error: "spectators cannot act"})
 		return
 	}
+	// Save undo snapshot before a human takes a turn action
+	snapBefore := r.game.Clone()
 	events, err := game.ApplyAction(r.game, seat, act)
 	if err != nil {
 		c.Send(ServerMsg{Type: "error", Error: err.Error()})
 		return
+	}
+	if !r.undoUsed[seat] && r.game.Phase != game.PhaseRoundOver {
+		r.undoSnap = snapBefore
+		r.undoSeat = seat
+	} else {
+		r.undoSnap = nil
+		r.undoSeat = -1
 	}
 	if r.game.Phase == game.PhaseRoundOver && r.game.Result != nil {
 		r.applyRoundSettlementLocked()
 		r.broadcastLobbyLocked()
 	}
 	r.broadcastGameLocked(events)
+	r.scheduleBotTurnLocked()
+}
+
+func (r *Room) scheduleBotTurnLocked() {
+	if r.game == nil || r.game.Phase == game.PhaseRoundOver {
+		return
+	}
+	turn := r.game.CurrentTurn
+	if turn < 0 || turn >= len(r.seats) || !r.seats[turn].isBot {
+		return
+	}
+	gen := r.gameGen
+	delay := r.botDelay
+	go func() {
+		time.Sleep(delay)
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if r.game == nil || r.gameGen != gen || r.game.Phase == game.PhaseRoundOver {
+			return
+		}
+		if r.game.CurrentTurn != turn || turn >= len(r.seats) || !r.seats[turn].isBot {
+			return
+		}
+		act := game.ChooseBotAction(r.game, turn)
+		events, err := game.ApplyAction(r.game, turn, act)
+		if err != nil {
+			log.Printf("bot action error: %v", err)
+			return
+		}
+		if r.game.Phase == game.PhaseRoundOver && r.game.Result != nil {
+			r.undoSnap = nil
+			r.undoSeat = -1
+			r.applyRoundSettlementLocked()
+			r.broadcastLobbyLocked()
+		}
+		r.broadcastGameLocked(events)
+		r.scheduleBotTurnLocked()
+	}()
 }
 
 func (r *Room) applyRoundSettlementLocked() {
@@ -369,7 +487,8 @@ func (r *Room) buildLobbyLocked() *LobbyView {
 			Seat:        i,
 			Name:        sp.name,
 			Ready:       sp.ready,
-			Connected:   sp.client != nil,
+			Connected:   sp.isBot || sp.client != nil,
+			IsBot:       sp.isBot,
 			TotalPoints: sp.totalPoints,
 		}
 	}
@@ -390,7 +509,8 @@ func (r *Room) broadcastGameLocked(events []game.Event) {
 	for i, sp := range r.seats {
 		if sp.client != nil {
 			view := r.game.ViewFor(i)
-			sp.client.Send(ServerMsg{Type: "state", Game: &view, Events: events})
+			canUndo := r.undoSnap != nil && r.undoSeat == i && !r.undoUsed[i] && r.game.Phase != game.PhaseRoundOver
+			sp.client.Send(ServerMsg{Type: "state", Game: &view, CanUndo: canUndo, Events: events})
 		}
 	}
 	specView := r.game.ViewFor(-1)

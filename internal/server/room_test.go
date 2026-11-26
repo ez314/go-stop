@@ -203,3 +203,54 @@ func TestEndToEndLobbyAndGameFlow(t *testing.T) {
 		t.Fatalf("expected 4P config broadcast, got %d", l4.Lobby.Config.PlayerCount)
 	}
 }
+
+func TestBotSeatAndUndoFlow(t *testing.T) {
+	room := NewRoom("http://192.168.0.10:8081", []string{"http://192.168.0.10:8081"})
+	room.botDelay = 20 * time.Millisecond // fast bot in tests
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		ServeWS(room, w, r)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	c1 := dialTestWS(t, srv.URL)
+	defer c1.Close()
+	readUntilType(t, c1, "lobby")
+
+	// Human joins as Host (Seat 0), adds 1 Bot (Seat 1), starts 2P round
+	_ = c1.WriteJSON(ClientMsg{Type: "join", Name: "Eric"})
+	readUntilType(t, c1, "welcome")
+	readUntilType(t, c1, "lobby")
+
+	_ = c1.WriteJSON(ClientMsg{Type: "add_bot"})
+	lBot, _ := readUntilType(t, c1, "lobby")
+	if len(lBot.Lobby.Players) != 2 || !lBot.Lobby.Players[1].IsBot {
+		t.Fatalf("expected Bot in seat 1, got %+v", lBot.Lobby.Players)
+	}
+
+	_ = c1.WriteJSON(ClientMsg{Type: "start_game"})
+	st, _ := readUntilType(t, c1, "state")
+	if st.Game == nil || len(st.Game.MyHand) == 0 {
+		t.Fatalf("expected active game with hand, got %+v", st.Game)
+	}
+
+	// Human plays 1 card -> canUndo becomes true, then human undoes!
+	firstCardID := st.Game.MyHand[0].ID
+	_ = c1.WriteJSON(ClientMsg{Type: "action", Action: &game.Action{Type: game.ActionPlayCard, CardID: firstCardID}})
+	afterPlay, _ := readUntilType(t, c1, "state")
+	if afterPlay.Game.Phase != game.PhaseRoundOver && !afterPlay.CanUndo {
+		t.Fatalf("expected CanUndo=true after human move")
+	}
+
+	if afterPlay.CanUndo {
+		_ = c1.WriteJSON(ClientMsg{Type: "undo"})
+		for i := 0; i < 5; i++ {
+			uMsg, _ := readUntilType(t, c1, "state")
+			if uMsg.Game.CurrentTurn == 0 && !uMsg.CanUndo {
+				return // Undo restored seat 0's turn and consumed undo!
+			}
+		}
+		t.Fatalf("undo did not restore seat 0 turn")
+	}
+}

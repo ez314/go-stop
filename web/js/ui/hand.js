@@ -1,5 +1,5 @@
 import { renderCard, cardTooltip } from '../cards.js';
-import { sendAction } from '../net.js';
+import { sendAction, sendMsg } from '../net.js';
 import { updateState } from '../store.js';
 
 function highlightBoardMatches(month, enabled) {
@@ -104,16 +104,28 @@ export function renderHand(state) {
     `;
   }
 
+  const undoHtml = state.canUndo
+    ? `<button id="undo-btn" class="pill-btn" type="button" title="Undo your last move (1 per round)">↩ Undo</button>`
+    : '';
+
   container.innerHTML = `
     <div class="hand-header">
       <span><strong>${escapeHtml(me.name)}</strong> (You) ${turnLabel}</span>
-      <span class="score-badge" style="cursor:help;" title="${escapeHtml(myScoreTip)}">${me.score.totalScore} pts ${me.goCount > 0 ? `(${me.goCount} Go)` : ''}</span>
+      <span style="display:flex;align-items:center;gap:6px;">
+        ${undoHtml}
+        <span class="score-badge" style="cursor:help;" title="${escapeHtml(myScoreTip)}">${me.score.totalScore} pts ${me.goCount > 0 ? `(${me.goCount} Go)` : ''}</span>
+      </span>
     </div>
     ${foldBarHtml}
     ${previewHtml}
     <div id="hand-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;"></div>
     <div id="hand-cards" class="hand-cards"></div>
   `;
+
+  const undoBtn = container.querySelector('#undo-btn');
+  if (undoBtn) {
+    undoBtn.addEventListener('click', () => sendMsg({ type: 'undo' }));
+  }
 
   const playSelectedBtn = container.querySelector('#play-selected-btn');
   if (playSelectedBtn && selectedCard) {
