@@ -15,16 +15,25 @@
   --accent-green: #22c55e;
 
   /* Card dimensions (responsive) */
-  --card-w: 52px;
-  --card-h: 78px;
-  --card-sm-w: 32px;
-  --card-sm-h: 46px;
+  --card-w: 48px;
+  --card-h: 72px;
+  --card-sm-w: 28px;
+  --card-sm-h: 42px;
   --card-radius: 6px;
 
   /* Spacing & shadows */
   --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 0 0 2px var(--accent-gold), 0 0 12px rgba(245, 197, 66, 0.55);
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (min-width: 430px) {
+  :root {
+    --card-w: 52px;
+    --card-h: 78px;
+    --card-sm-w: 32px;
+    --card-sm-h: 46px;
+  }
 }
 
 @media (min-width: 640px) {
