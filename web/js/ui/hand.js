@@ -62,7 +62,7 @@ export function renderHand(state) {
   if (g.phase === 'gwang_palgi') {
     if (isMyTurn) {
       turnLabel = '— <span style="color:var(--accent-gold)">Play or Fold?</span>';
-    } else if (g.myIndex === 0) {
+    } else if (g.myIndex === g.dealerIdx) {
       turnLabel = `— <span style="color:var(--text-muted)">Dealer (staying in) · Waiting for ${escapeHtml(g.players[g.currentTurn].name)}...</span>`;
     } else {
       turnLabel = `— <span style="color:var(--text-muted)">Waiting for ${escapeHtml(g.players[g.currentTurn].name)} to decide...</span>`;

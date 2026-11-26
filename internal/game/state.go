@@ -85,6 +85,7 @@ type GameState struct {
 	Players     []*PlayerState `json:"players"`
 	Field       []Card         `json:"field"`
 	DrawPile    []Card         `json:"drawPile"`
+	DealerIdx   int            `json:"dealerIdx"`   // Previous round's winner (goes first / stays in for 4P)
 	CurrentTurn int            `json:"currentTurn"`
 	Phase       TurnPhase      `json:"phase"`
 	Pending     *PendingTurn   `json:"pending,omitempty"`
@@ -114,13 +115,14 @@ type PlayerView struct {
 	Players        []PublicPlayerView `json:"players"`
 	Field          []Card             `json:"field"`
 	DrawCount      int                `json:"drawCount"`
+	DealerIdx      int                `json:"dealerIdx"`
 	CurrentTurn    int                `json:"currentTurn"`
 	Phase          TurnPhase          `json:"phase"`
 	ChoiceCards    []Card             `json:"choiceCards,omitempty"`
 	ShakeMonths    []int              `json:"shakeMonths,omitempty"`
 	BombMonths     []int              `json:"bombMonths,omitempty"`
 	FoldSellValue  int                `json:"foldSellValue,omitempty"` // 4P: how many pts you get if you fold now
-	MustFold       bool               `json:"mustFold,omitempty"`      // 4P: 4th player must fold if first 3 stayed in
+	MustFold       bool               `json:"mustFold,omitempty"`      // 4P: last player must fold if Dealer + 2 ahead stayed in
 	Result         *RoundResult       `json:"result,omitempty"`
 }
 
@@ -181,6 +183,7 @@ func (s *GameState) ViewFor(playerIdx int) PlayerView {
 		Players:     pubPlayers,
 		Field:       append([]Card(nil), s.Field...),
 		DrawCount:   len(s.DrawPile),
+		DealerIdx:   s.DealerIdx,
 		CurrentTurn: s.CurrentTurn,
 		Phase:       s.Phase,
 		Result:      s.Result,
@@ -192,7 +195,7 @@ func (s *GameState) ViewFor(playerIdx int) PlayerView {
 			view.ShakeMonths, view.BombMonths = s.availableThreeOfAKind(playerIdx)
 		}
 		if s.CurrentTurn == playerIdx && s.Phase == PhaseGwangPalgi {
-			view.MustFold = playerIdx == len(s.Players)-1
+			view.MustFold = s.isLastFoldSeat(playerIdx)
 			if view.MustFold {
 				view.FoldSellValue = CountSellableCards(s.Players[playerIdx].Hand)
 			}
@@ -204,6 +207,14 @@ func (s *GameState) ViewFor(playerIdx int) PlayerView {
 	}
 
 	return view
+}
+
+func (s *GameState) isLastFoldSeat(playerIdx int) bool {
+	n := len(s.Players)
+	if n == 0 {
+		return false
+	}
+	return playerIdx == (s.DealerIdx+n-1)%n
 }
 
 func (s *GameState) availableThreeOfAKind(playerIdx int) (shakeMonths []int, bombMonths []int) {

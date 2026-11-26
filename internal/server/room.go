@@ -29,6 +29,7 @@ type Room struct {
 	specs       map[*Client]bool
 	config      game.RuleConfig
 	game        *game.GameState
+	nextDealer  int // previous round's winner goes first next round
 	gameGen     int // incremented per round / undo to cancel stale bot timers
 	undoSnap    *game.GameState
 	undoSeat    int
@@ -407,7 +408,11 @@ func (r *Room) startNewRoundLocked() {
 		names[i] = sp.name
 		sp.ready = false
 	}
-	g, events, err := game.NewGame(names, r.config, r.rng)
+	dealer := r.nextDealer
+	if dealer < 0 || dealer >= len(r.seats) {
+		dealer = 0
+	}
+	g, events, err := game.NewGameWithDealer(names, r.config, dealer, r.rng)
 	if err != nil {
 		log.Printf("NewGame error: %v", err)
 		return
@@ -495,6 +500,9 @@ func (r *Room) scheduleBotTurnLocked() {
 }
 
 func (r *Room) applyRoundSettlementLocked() {
+	if r.game != nil && r.game.Result != nil && !r.game.Result.IsDraw && r.game.Result.WinnerIdx >= 0 {
+		r.nextDealer = r.game.Result.WinnerIdx
+	}
 	for i, delta := range r.game.Result.Settlements {
 		if i < len(r.seats) {
 			r.seats[i].totalPoints += delta

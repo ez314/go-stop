@@ -6,7 +6,7 @@ func ChooseBotAction(s *GameState, playerIdx int) Action {
 
 	switch s.Phase {
 	case PhaseGwangPalgi:
-		if playerIdx == len(s.Players)-1 {
+		if s.isLastFoldSeat(playerIdx) {
 			return Action{Type: ActionFold}
 		}
 		// Voluntary fold if hand has 0 Gwang and weak matching potential; otherwise stay in

@@ -16,10 +16,18 @@ var (
 	ErrCannotBombShake = errors.New("no valid 3-of-a-kind for bomb or shake")
 )
 
-// NewGame deals a new Go-Stop round and checks for initial Chongtong.
+// NewGame deals a new Go-Stop round with seat 0 as the starting dealer.
 func NewGame(playerNames []string, cfg RuleConfig, rng *rand.Rand) (*GameState, []Event, error) {
+	return NewGameWithDealer(playerNames, cfg, 0, rng)
+}
+
+// NewGameWithDealer deals a new Go-Stop round where dealerIdx (previous winner) goes first.
+func NewGameWithDealer(playerNames []string, cfg RuleConfig, dealerIdx int, rng *rand.Rand) (*GameState, []Event, error) {
 	if len(playerNames) != cfg.PlayerCount {
 		return nil, nil, fmt.Errorf("expected %d players, got %d", cfg.PlayerCount, len(playerNames))
+	}
+	if dealerIdx < 0 || dealerIdx >= cfg.PlayerCount {
+		dealerIdx = 0
 	}
 
 	deck := NewDeck(cfg.IncludeBonusCards)
@@ -47,11 +55,11 @@ func NewGame(playerNames []string, cfg RuleConfig, rng *rand.Rand) (*GameState, 
 	copy(drawPile, deck[cursor:])
 
 	initialPhase := PhasePlayHand
-	initialTurn := 0
+	initialTurn := dealerIdx
 	if cfg.PlayerCount == 4 {
-		// Dealer (seat 0) must stay in; counterclockwise decisions start at seat 1
+		// Dealer must stay in; counterclockwise decisions start at (dealerIdx + 1) % 4
 		initialPhase = PhaseGwangPalgi
-		initialTurn = 1
+		initialTurn = (dealerIdx + 1) % cfg.PlayerCount
 	}
 
 	s := &GameState{
@@ -59,24 +67,25 @@ func NewGame(playerNames []string, cfg RuleConfig, rng *rand.Rand) (*GameState, 
 		Players:     players,
 		Field:       field,
 		DrawPile:    drawPile,
+		DealerIdx:   dealerIdx,
 		CurrentTurn: initialTurn,
 		Phase:       initialPhase,
 		rng:         rng,
 	}
 
-	startMsg := "Round started"
+	startMsg := fmt.Sprintf("Round started — %s goes first!", players[dealerIdx].Name)
 	if cfg.PlayerCount == 4 {
-		startMsg = fmt.Sprintf("4P Round: %s is Dealer (stays in). %s decides Play or Fold!", players[0].Name, players[1].Name)
+		startMsg = fmt.Sprintf("4P Round: %s is Dealer (stays in). %s decides Play or Fold!", players[dealerIdx].Name, players[initialTurn].Name)
 	}
 	events := []Event{{Type: "round_started", PlayerIdx: initialTurn, Message: startMsg}}
 
-	// Move any bonus cards dealt to the field directly into player 0's captured pile
+	// Move any bonus cards dealt to the field directly into Dealer's captured pile
 	// and replace them from the draw pile (standard Matgo/Go-Stop rule).
 	var remainingField []Card
 	for _, c := range s.Field {
 		if c.IsBonus {
-			s.Players[0].Captured = append(s.Players[0].Captured, c)
-			events = append(events, Event{Type: "captured", PlayerIdx: 0, Cards: []Card{c}, Message: "Bonus card on field"})
+			s.Players[dealerIdx].Captured = append(s.Players[dealerIdx].Captured, c)
+			events = append(events, Event{Type: "captured", PlayerIdx: dealerIdx, Cards: []Card{c}, Message: "Bonus card on field"})
 			if len(s.DrawPile) > 0 {
 				rep := s.popDraw()
 				remainingField = append(remainingField, rep)
@@ -203,7 +212,7 @@ func ApplyAction(s *GameState, playerIdx int, act Action) ([]Event, error) {
 func (s *GameState) handleFold(playerIdx int) ([]Event, error) {
 	p := s.Players[playerIdx]
 	p.Folded = true
-	forced := playerIdx == len(s.Players)-1
+	forced := s.isLastFoldSeat(playerIdx)
 	if forced {
 		// Only a player forced to fold (after Dealer + 2 players ahead stayed in) can sell Gwang (1 pt each)
 		p.FoldBonus = CountSellableCards(p.Hand)
@@ -218,9 +227,9 @@ func (s *GameState) handleFold(playerIdx int) ([]Event, error) {
 		Shuffle(s.DrawPile, s.rng)
 	}
 
-	// Start normal play with Dealer (seat 0)
+	// Start normal play with Dealer
 	s.Phase = PhasePlayHand
-	s.CurrentTurn = 0
+	s.CurrentTurn = s.DealerIdx
 
 	msg := fmt.Sprintf("%s folded for this round", p.Name)
 	if forced && p.FoldBonus > 0 {
@@ -232,12 +241,12 @@ func (s *GameState) handleFold(playerIdx int) ([]Event, error) {
 }
 
 func (s *GameState) handleStayIn(playerIdx int) ([]Event, error) {
-	// Last player in 4P cannot stay in if the first 3 already chose to play
-	if playerIdx == len(s.Players)-1 {
+	// Last player in 4P cannot stay in if Dealer + 2 players ahead already chose to play
+	if s.isLastFoldSeat(playerIdx) {
 		return s.handleFold(playerIdx)
 	}
 	p := s.Players[playerIdx]
-	s.CurrentTurn = playerIdx + 1
+	s.CurrentTurn = (playerIdx + 1) % len(s.Players)
 	return []Event{{Type: "player_stayed", PlayerIdx: playerIdx, Message: fmt.Sprintf("%s is playing!", p.Name)}}, nil
 }
 
