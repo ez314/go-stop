@@ -404,7 +404,10 @@ func (s *GameState) handleBomb(playerIdx int, cardID string) ([]Event, error) {
 	events := []Event{
 		{Type: "bomb", PlayerIdx: playerIdx, Cards: bombCards, Message: fmt.Sprintf("%s dropped a BOMB! (x2)", p.Name)},
 	}
-	events = append(events, s.stealPiFromOpponents(playerIdx, 1)...)
+	// Only steal Pi on a fresh Bomb (not if this month was already shaken earlier)
+	if !alreadyShaken {
+		events = append(events, s.stealPiFromOpponents(playerIdx, 1)...)
+	}
 
 	s.Pending = &PendingTurn{IsBombPass: true}
 	events = append(events, s.resolveFlip(playerIdx)...)
