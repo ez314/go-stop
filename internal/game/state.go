@@ -49,10 +49,11 @@ type PlayerState struct {
 	Name        string `json:"name"`
 	Hand        []Card `json:"hand"`
 	Captured    []Card `json:"captured"`
-	GoCount     int    `json:"goCount"`
-	LastGoScore int    `json:"lastGoScore"`
-	ShakeCount  int    `json:"shakeCount"`
-	BombPasses  int    `json:"bombPasses"` // Free draw-only turns earned from playing a bomb
+	GoCount      int    `json:"goCount"`
+	LastGoScore  int    `json:"lastGoScore"`
+	ShakeCount   int    `json:"shakeCount"`
+	ShakenMonths []int  `json:"shakenMonths,omitempty"`
+	BombPasses   int    `json:"bombPasses"` // Free draw-only turns earned from playing a bomb
 	PpeokCount  int    `json:"ppeokCount"`
 	Folded      bool   `json:"folded"`      // 4P: sat out via Gwang-palgi
 	FoldBonus   int    `json:"foldBonus"`   // 4P: points earned from selling Gwang/Double-Pi
@@ -136,6 +137,7 @@ func (s *GameState) Clone() *GameState {
 		pCopy := *p
 		pCopy.Hand = append([]Card(nil), p.Hand...)
 		pCopy.Captured = append([]Card(nil), p.Captured...)
+		pCopy.ShakenMonths = append([]int(nil), p.ShakenMonths...)
 		cp.Players[i] = &pCopy
 	}
 	if s.Pending != nil {
@@ -217,11 +219,15 @@ func (s *GameState) availableThreeOfAKind(playerIdx int) (shakeMonths []int, bom
 			fieldCounts[c.Month]++
 		}
 	}
+	alreadyShaken := map[int]bool{}
+	for _, m := range s.Players[playerIdx].ShakenMonths {
+		alreadyShaken[m] = true
+	}
 	for m, cnt := range counts {
 		if cnt == 3 {
 			if fieldCounts[m] == 1 {
 				bombMonths = append(bombMonths, m)
-			} else if fieldCounts[m] == 0 {
+			} else if fieldCounts[m] == 0 && !alreadyShaken[m] {
 				shakeMonths = append(shakeMonths, m)
 			}
 		}

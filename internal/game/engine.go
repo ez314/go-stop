@@ -327,17 +327,14 @@ func (s *GameState) handleShake(playerIdx int, cardID string) ([]Event, error) {
 	}
 
 	p.ShakeCount++
-	events := []Event{{
+	p.ShakenMonths = append(p.ShakenMonths, target.Month)
+	// Shake reveals the 3 cards and adds x2 multiplier, but lets the player choose which card to play!
+	return []Event{{
 		Type:      "shake",
 		PlayerIdx: playerIdx,
 		Cards:     shakenCards,
 		Message:   fmt.Sprintf("%s declared Shake (흔들기) on Month %d! (×2)", p.Name, target.Month),
-	}}
-	playEvents, err := s.handlePlayCard(playerIdx, cardID)
-	if err != nil {
-		return nil, err
-	}
-	return append(events, playEvents...), nil
+	}}, nil
 }
 
 func (s *GameState) handleBomb(playerIdx int, cardID string) ([]Event, error) {
@@ -375,7 +372,17 @@ func (s *GameState) handleBomb(playerIdx int, cardID string) ([]Event, error) {
 		}
 	}
 	p.Hand = remaining
-	p.ShakeCount++
+	alreadyShaken := false
+	for _, sm := range p.ShakenMonths {
+		if sm == month {
+			alreadyShaken = true
+			break
+		}
+	}
+	if !alreadyShaken {
+		p.ShakeCount++
+		p.ShakenMonths = append(p.ShakenMonths, month)
+	}
 	p.BombPasses += 2
 
 	matches := s.fieldMatches(month)
