@@ -1,0 +1,9 @@
+# Compiled binaries
+/gostop
+/gostop.exe
+*.exe
+*.test
+
+# OS files
+.DS_Store
+Thumbs.db

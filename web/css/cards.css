@@ -1,0 +1,139 @@
+.hwatu-card {
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--card-radius);
+  background: #b91c1c;
+  color: #1c1917;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  user-select: none;
+  border: 2px solid #7f1d1d;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  flex-shrink: 0;
+}
+
+.hwatu-card.sm {
+  width: var(--card-sm-w);
+  height: var(--card-sm-h);
+  border-width: 1.5px;
+  border-radius: 4px;
+}
+
+.hwatu-card.has-art {
+  padding: 0;
+  background: #c81e1e;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.hwatu-card.bonus-card {
+  background: linear-gradient(145deg, #7e22ce 0%, #b91c1c 100%);
+  border-color: #f5c542;
+  color: #fff;
+  padding: 3px;
+}
+
+.bonus-inner {
+  width: 100%;
+  height: 100%;
+  border: 1.5px solid rgba(245, 197, 66, 0.75);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.bonus-num {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #fde047;
+  line-height: 1;
+}
+
+.bonus-ko {
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.bonus-sub {
+  font-size: 0.5rem;
+  letter-spacing: 0.6px;
+  opacity: 0.85;
+}
+
+.hwatu-card.sm .bonus-num { font-size: 0.72rem; }
+.hwatu-card.sm .bonus-ko, .hwatu-card.sm .bonus-sub { display: none; }
+
+.hwatu-card.back {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--bg-card-back),
+    var(--bg-card-back) 6px,
+    #881414 6px,
+    #881414 12px
+  );
+  border-color: #450a0a;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.hwatu-card.playable {
+  cursor: pointer;
+}
+
+.hwatu-card.playable:hover {
+  transform: translateY(-6px) scale(1.04);
+  z-index: 5;
+}
+
+.hwatu-card.match-hint {
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.hwatu-card.selected {
+  transform: translateY(-10px) scale(1.06);
+  box-shadow: 0 0 0 3px #38bdf8, 0 8px 18px rgba(56, 189, 248, 0.55);
+  z-index: 8;
+}
+
+.hwatu-card.board-match-target {
+  box-shadow: 0 0 0 3px #38bdf8, 0 0 18px rgba(56, 189, 248, 0.75);
+  transform: scale(1.06);
+  z-index: 6;
+}
+
+/* Animation overlay layer */
+.anim-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+  overflow: hidden;
+}
+
+.flying-card {
+  position: fixed;
+  margin: 0;
+  z-index: 85;
+  will-change: transform, opacity;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+}
+
+.flying-card.match-flash {
+  box-shadow: 0 0 0 3px #f5c542, 0 0 22px rgba(245, 197, 66, 0.9);
+}

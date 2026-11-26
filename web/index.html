@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Go-Stop LAN</title>
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/cards.css" />
+  <link rel="stylesheet" href="css/modals.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">고스톱 <span class="sub">LAN</span></div>
+      <div id="status-pill" class="status-pill">Connecting...</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button id="hints-btn" class="pill-btn" title="Toggle match highlights & combo hints">💡 Hints: ON</button>
+        <button id="qr-btn" class="icon-btn" title="Show Join QR Code">📱</button>
+        <button id="rules-btn" class="icon-btn" title="Rules & Scoring Guide">❓</button>
+        <button id="mute-btn" class="icon-btn" title="Toggle Sound">🔊</button>
+      </div>
+    </header>
+
+    <div id="error-banner" class="error-banner hidden">
+      <span id="error-text"></span>
+      <button id="error-close" class="icon-btn" title="Dismiss">✕</button>
+    </div>
+
+    <main id="lobby-view" class="view active"></main>
+    <main id="game-view" class="view">
+      <section id="opponents-bar" class="opponents-bar"></section>
+      <div id="last-move-bar" class="last-move-bar hidden"></div>
+      <section id="board-area" class="board-area"></section>
+      <section id="my-captured" class="my-captured"></section>
+      <section id="my-hand" class="my-hand"></section>
+    </main>
+
+    <div id="callout-banner" class="callout-banner hidden"></div>
+    <div id="toast-container" class="toast-container"></div>
+    <div id="anim-layer" class="anim-layer"></div>
+    <div id="modal-root" class="modal-root hidden"></div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

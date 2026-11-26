@@ -1,0 +1,37 @@
+:root {
+  /* Table felt & surface palette */
+  --bg-felt: #144d35;
+  --bg-felt-dark: #0c3322;
+  --bg-panel: rgba(10, 34, 24, 0.85);
+  --bg-card-back: #a61c1c;
+  --bg-card-face: #fffaf0;
+
+  /* Text & accents */
+  --text-main: #f4f7f5;
+  --text-muted: #a6c4b5;
+  --accent-gold: #f5c542;
+  --accent-red: #e04f4f;
+  --accent-blue: #3b82f6;
+  --accent-green: #22c55e;
+
+  /* Card dimensions (responsive) */
+  --card-w: 52px;
+  --card-h: 78px;
+  --card-sm-w: 32px;
+  --card-sm-h: 46px;
+  --card-radius: 6px;
+
+  /* Spacing & shadows */
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 0 2px var(--accent-gold), 0 0 12px rgba(245, 197, 66, 0.55);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --card-w: 64px;
+    --card-h: 96px;
+    --card-sm-w: 38px;
+    --card-sm-h: 54px;
+  }
+}
