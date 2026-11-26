@@ -170,32 +170,37 @@ func TestFullRandomGameCompletes(t *testing.T) {
 func TestFourPlayerGwangPalgi(t *testing.T) {
 	rng := rand.New(rand.NewSource(99))
 	cfg := DefaultRules(4)
-	s, _, err := NewGame([]string{"A", "B", "C", "D"}, cfg, rng)
+	s, _, err := NewGame([]string{"Dealer", "B", "C", "D"}, cfg, rng)
 	if err != nil {
 		t.Fatalf("NewGame 4P error: %v", err)
 	}
-	if s.Phase != PhaseGwangPalgi {
-		t.Fatalf("expected PhaseGwangPalgi, got %s", s.Phase)
+	if s.Phase != PhaseGwangPalgi || s.CurrentTurn != 1 {
+		t.Fatalf("expected PhaseGwangPalgi starting at seat 1 (Dealer seat 0 stays in), got phase=%s turn=%d", s.Phase, s.CurrentTurn)
 	}
-	// Player 0 stays in, Player 1 folds
-	if _, err := ApplyAction(s, 0, Action{Type: ActionStayIn}); err != nil {
-		t.Fatalf("stay_in error: %v", err)
+	// Seat 1 & Seat 2 stay in -> Seat 3 is forced to fold and can sell Gwang!
+	if _, err := ApplyAction(s, 1, Action{Type: ActionStayIn}); err != nil {
+		t.Fatalf("seat 1 stay_in error: %v", err)
 	}
-	if s.CurrentTurn != 1 || s.Phase != PhaseGwangPalgi {
-		t.Fatalf("expected turn 1 in PhaseGwangPalgi, got turn=%d phase=%s", s.CurrentTurn, s.Phase)
+	if _, err := ApplyAction(s, 2, Action{Type: ActionStayIn}); err != nil {
+		t.Fatalf("seat 2 stay_in error: %v", err)
 	}
-	if _, err := ApplyAction(s, 1, Action{Type: ActionFold}); err != nil {
-		t.Fatalf("fold error: %v", err)
+	if s.CurrentTurn != 3 || s.Phase != PhaseGwangPalgi {
+		t.Fatalf("expected turn 3 forced fold, got turn=%d phase=%s", s.CurrentTurn, s.Phase)
 	}
-	if !s.Players[1].Folded || s.Phase != PhasePlayHand || len(s.DrawPile) != 21 {
-		t.Fatalf("expected P1 folded, PhasePlayHand, and 21 draw cards; got folded=%v phase=%s draw=%d", s.Players[1].Folded, s.Phase, len(s.DrawPile))
+	expectedGwang := CountSellableCards(s.Players[3].Hand)
+	if _, err := ApplyAction(s, 3, Action{Type: ActionFold}); err != nil {
+		t.Fatalf("seat 3 forced fold error: %v", err)
+	}
+	if !s.Players[3].Folded || s.Players[3].FoldBonus != expectedGwang || s.Phase != PhasePlayHand || s.CurrentTurn != 0 || len(s.DrawPile) != 21 {
+		t.Fatalf("unexpected state after forced fold: folded=%v bonus=%d (want %d) phase=%s turn=%d draw=%d",
+			s.Players[3].Folded, s.Players[3].FoldBonus, expectedGwang, s.Phase, s.CurrentTurn, len(s.DrawPile))
 	}
 
 	// Play rest of the 3 active players' round to completion
 	for steps := 0; steps < 250 && s.Phase != PhaseRoundOver; steps++ {
 		pIdx := s.CurrentTurn
-		if pIdx == 1 {
-			t.Fatalf("folded player 1 should never receive a turn")
+		if pIdx == 3 {
+			t.Fatalf("folded player 3 should never receive a turn")
 		}
 		p := s.Players[pIdx]
 		var act Action

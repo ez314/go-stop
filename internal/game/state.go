@@ -190,8 +190,10 @@ func (s *GameState) ViewFor(playerIdx int) PlayerView {
 			view.ShakeMonths, view.BombMonths = s.availableThreeOfAKind(playerIdx)
 		}
 		if s.CurrentTurn == playerIdx && s.Phase == PhaseGwangPalgi {
-			view.FoldSellValue = CountSellableCards(s.Players[playerIdx].Hand)
 			view.MustFold = playerIdx == len(s.Players)-1
+			if view.MustFold {
+				view.FoldSellValue = CountSellableCards(s.Players[playerIdx].Hand)
+			}
 		}
 	}
 

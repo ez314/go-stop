@@ -141,10 +141,11 @@ export function renderCaptured(state) {
     const shakeBadge = p.shakeCount > 0 ? ` · x${Math.pow(2, p.shakeCount)}` : '';
     if (p.folded) {
       panel.style.opacity = '0.6';
+      const foldBadge = p.foldBonus > 0 ? `광팔기 +${p.foldBonus}/loser` : 'Sat out';
       panel.innerHTML = `
         <div class="player-header">
           <span>${escapeHtml(p.name)} (Folded)</span>
-          <span class="score-badge" title="Folded early (광팔기): earns +${p.foldBonus} pts from the round winner.">광팔기 +${p.foldBonus}</span>
+          <span class="score-badge" title="${p.foldBonus > 0 ? `Forced fold (광팔기): earns +${p.foldBonus} pt from each active loser.` : 'Folded voluntarily (no Gwang sale).'}">${foldBadge}</span>
         </div>
       `;
     } else {

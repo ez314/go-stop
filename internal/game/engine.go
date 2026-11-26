@@ -47,8 +47,11 @@ func NewGame(playerNames []string, cfg RuleConfig, rng *rand.Rand) (*GameState, 
 	copy(drawPile, deck[cursor:])
 
 	initialPhase := PhasePlayHand
+	initialTurn := 0
 	if cfg.PlayerCount == 4 {
+		// Dealer (seat 0) must stay in; counterclockwise decisions start at seat 1
 		initialPhase = PhaseGwangPalgi
+		initialTurn = 1
 	}
 
 	s := &GameState{
@@ -56,12 +59,16 @@ func NewGame(playerNames []string, cfg RuleConfig, rng *rand.Rand) (*GameState, 
 		Players:     players,
 		Field:       field,
 		DrawPile:    drawPile,
-		CurrentTurn: 0,
+		CurrentTurn: initialTurn,
 		Phase:       initialPhase,
 		rng:         rng,
 	}
 
-	events := []Event{{Type: "round_started", PlayerIdx: 0, Message: "Round started"}}
+	startMsg := "Round started"
+	if cfg.PlayerCount == 4 {
+		startMsg = fmt.Sprintf("4P Round: %s is Dealer (stays in). %s decides Play or Fold!", players[0].Name, players[1].Name)
+	}
+	events := []Event{{Type: "round_started", PlayerIdx: initialTurn, Message: startMsg}}
 
 	// Move any bonus cards dealt to the field directly into player 0's captured pile
 	// and replace them from the draw pile (standard Matgo/Go-Stop rule).
@@ -196,7 +203,13 @@ func ApplyAction(s *GameState, playerIdx int, act Action) ([]Event, error) {
 func (s *GameState) handleFold(playerIdx int) ([]Event, error) {
 	p := s.Players[playerIdx]
 	p.Folded = true
-	p.FoldBonus = CountSellableCards(p.Hand)
+	forced := playerIdx == len(s.Players)-1
+	if forced {
+		// Only a player forced to fold (after Dealer + 2 players ahead stayed in) can sell Gwang (1 pt each)
+		p.FoldBonus = CountSellableCards(p.Hand)
+	} else {
+		p.FoldBonus = 0
+	}
 
 	// Return folded player's cards into the draw pile and shuffle so the 3 remaining players have 21 draw cards.
 	s.DrawPile = append(s.DrawPile, p.Hand...)
@@ -205,18 +218,15 @@ func (s *GameState) handleFold(playerIdx int) ([]Event, error) {
 		Shuffle(s.DrawPile, s.rng)
 	}
 
-	// Start normal play with the first non-folded player
+	// Start normal play with Dealer (seat 0)
 	s.Phase = PhasePlayHand
-	for i, pl := range s.Players {
-		if !pl.Folded {
-			s.CurrentTurn = i
-			break
-		}
-	}
+	s.CurrentTurn = 0
 
-	msg := fmt.Sprintf("%s folded (광팔기: +%d pts on settlement)", p.Name, p.FoldBonus)
-	if p.FoldBonus == 0 {
-		msg = fmt.Sprintf("%s folded for this round", p.Name)
+	msg := fmt.Sprintf("%s folded for this round", p.Name)
+	if forced && p.FoldBonus > 0 {
+		msg = fmt.Sprintf("%s was forced to fold & sold %d Gwang (+%d pts/loser)", p.Name, p.FoldBonus, p.FoldBonus)
+	} else if forced {
+		msg = fmt.Sprintf("%s was forced to fold (0 Gwang to sell)", p.Name)
 	}
 	return []Event{{Type: "player_folded", PlayerIdx: playerIdx, Points: p.FoldBonus, Message: msg}}, nil
 }

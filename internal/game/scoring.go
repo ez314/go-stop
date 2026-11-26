@@ -160,11 +160,11 @@ func calculateScoreWithOption(p *PlayerState, sakeCupAsPi bool) ScoreBreakdown {
 }
 
 // CountSellableCards returns the Gwang-palgi (광팔기) payout value of a hand in 4P mode:
-// +1 point per Gwang, Double-Pi, or Sake Cup (국진) sold when folding early.
+// +1 point per Gwang ONLY (not Double-Pi or Sake Cup), awarded only when forced to fold.
 func CountSellableCards(hand []Card) int {
 	pts := 0
 	for _, c := range hand {
-		if c.Type == TypeGwang || c.IsSakeCup || (c.Type == TypePi && c.PiValue >= 2) {
+		if c.Type == TypeGwang {
 			pts++
 		}
 	}
@@ -172,7 +172,7 @@ func CountSellableCards(hand []Card) int {
 }
 
 // CalculateSettlement computes net points won/lost per player when winnerIdx stops the round.
-// Handles Pi-bak, Gwang-bak, Go-bak, and 4P Gwang-palgi payouts for folded players.
+// Handles Pi-bak, Gwang-bak, Go-bak, and 4P Gwang-palgi payouts (paid by active losers).
 func CalculateSettlement(winnerIdx int, players []*PlayerState, cfg RuleConfig) []int {
 	s, _ := CalculateSettlementDetailed(winnerIdx, players, cfg)
 	return s
@@ -196,17 +196,20 @@ func CalculateSettlementDetailed(winnerIdx int, players []*PlayerState, cfg Rule
 		}
 	}
 
-	// Calculate each active loser's payment to the winner, and pay folded players' Gwang-palgi bonus
+	// Collect any forced-fold player's Gwang sale bonus (paid by active losers)
+	foldedIdx := -1
+	foldBonus := 0
 	for i, p := range players {
-		if i == winnerIdx {
-			continue
+		if p.Folded && p.FoldBonus > 0 {
+			foldedIdx = i
+			foldBonus = p.FoldBonus
+			penalties[i] = append(penalties[i], "광팔기")
 		}
-		if p.Folded {
-			if p.FoldBonus > 0 {
-				settlements[i] += p.FoldBonus
-				settlements[winnerIdx] -= p.FoldBonus
-				penalties[i] = append(penalties[i], "광팔기")
-			}
+	}
+
+	// Calculate each active loser's payment to the winner (and Gwang-palgi payment to forced-fold player)
+	for i, p := range players {
+		if i == winnerIdx || p.Folded {
 			continue
 		}
 		oppScore := CalculateScore(p, cfg)
@@ -224,12 +227,18 @@ func CalculateSettlementDetailed(winnerIdx int, players []*PlayerState, cfg Rule
 		}
 
 		amt := winScore.TotalScore * mult
+		payer := i
 		if goBakIdx >= 0 {
-			settlements[goBakIdx] -= amt
-		} else {
-			settlements[i] -= amt
+			payer = goBakIdx
 		}
+		settlements[payer] -= amt
 		settlements[winnerIdx] += amt
+
+		// Active loser(s) pay the forced-fold player's Gwang sale bonus (1 per Gwang)
+		if foldedIdx >= 0 && foldBonus > 0 {
+			settlements[payer] -= foldBonus
+			settlements[foldedIdx] += foldBonus
+		}
 	}
 
 	return settlements, penalties

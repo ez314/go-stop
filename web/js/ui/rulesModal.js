@@ -18,9 +18,9 @@ export function getModeRulesSummary(config) {
       title: '4-Player Go-Stop with 광팔기 (Fold & Sell)',
       bullets: [
         'Deal: 7 cards to all 4 players, 6 cards face-up on the table.',
-        '광팔기 (Fold): Going around the table, 1 player folds early and sells any Gwang or Double-Pi in hand (+1 pt each from the round winner). Their 7 cards shuffle back into the draw pile.',
-        'Active play: Remaining 3 players play standard 3P Go-Stop (reach 3+ base points to call Go or Stop).',
-        'Pi-bak (피박): Active loser pays x2 if they have ≤ 5 Pi when winner scores Pi.',
+        'Dealer (Seat 1) must stay in. Going counterclockwise, the next players choose Play or Fold until 1 player folds.',
+        '광팔기 (Sell Gwang): ONLY if you are forced to fold (Dealer + 2 players ahead stayed in), you sell each Gwang (광) in hand for +1 pt paid by each active loser (no Double-Pi sales).',
+        'Active play: Folded cards shuffle into the draw pile; remaining 3 players play standard 3P Go-Stop (3+ base pts to win).',
       ],
     };
   }

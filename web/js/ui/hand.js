@@ -27,10 +27,11 @@ export function renderHand(state) {
   container.classList.toggle('active-turn', isMyTurn);
 
   if (me.folded) {
+    const foldText = me.foldBonus > 0 ? `광팔기 +${me.foldBonus}/loser` : 'Sat out';
     container.innerHTML = `
       <div class="hand-header">
         <span><strong>${escapeHtml(me.name)}</strong> (You) — <span style="color:var(--accent-gold)">Folded this round</span></span>
-        <span class="score-badge">광팔기 +${me.foldBonus} pts</span>
+        <span class="score-badge">${foldText}</span>
       </div>
       <div style="font-size:0.84rem;color:var(--text-muted);text-align:center;padding:8px 0;">
         Watching the remaining 3 players finish this round...
@@ -44,9 +45,13 @@ export function renderHand(state) {
 
   let turnLabel = '';
   if (g.phase === 'gwang_palgi') {
-    turnLabel = isMyTurn
-      ? '— <span style="color:var(--accent-gold)">Play or Fold?</span>'
-      : `— <span style="color:var(--text-muted)">Waiting for ${escapeHtml(g.players[g.currentTurn].name)} to decide...</span>`;
+    if (isMyTurn) {
+      turnLabel = '— <span style="color:var(--accent-gold)">Play or Fold?</span>';
+    } else if (g.myIndex === 0) {
+      turnLabel = `— <span style="color:var(--text-muted)">Dealer (staying in) · Waiting for ${escapeHtml(g.players[g.currentTurn].name)}...</span>`;
+    } else {
+      turnLabel = `— <span style="color:var(--text-muted)">Waiting for ${escapeHtml(g.players[g.currentTurn].name)} to decide...</span>`;
+    }
   } else if (isMyTurn) {
     turnLabel = '— <span style="color:var(--accent-gold)">Your Turn</span>';
   }
@@ -57,19 +62,19 @@ export function renderHand(state) {
     if (g.mustFold) {
       foldBarHtml = `
         <div class="fold-bar">
-          <div><strong>4P 광팔기 (Fold):</strong> 3 players already stayed in — you sit out this round and sell Gwang/2-Pi for <strong>+${sellPts} pts</strong>!</div>
+          <div><strong>4P 광팔기 (Forced Fold):</strong> Dealer &amp; 2 players ahead stayed in — you fold and sell <strong>${sellPts} Gwang</strong> (+${sellPts} pt per loser)!</div>
           <div style="display:flex;gap:8px;justify-content:center;">
-            <button id="btn-fold" class="btn" type="button">Fold &amp; Sell (+${sellPts} pts)</button>
+            <button id="btn-fold" class="btn" type="button">${sellPts > 0 ? `Fold &amp; Sell ${sellPts} Gwang` : 'Fold (0 Gwang)'}</button>
           </div>
         </div>
       `;
     } else {
       foldBarHtml = `
         <div class="fold-bar">
-          <div><strong>4P 광팔기:</strong> Inspect your cards below — play this round or fold early to sell Gwang/2-Pi for <strong>+${sellPts} pts</strong>?</div>
+          <div><strong>4P Round Start:</strong> Inspect your cards — play this round or fold early? <small style="color:var(--text-muted)">(Only a forced fold can sell Gwang.)</small></div>
           <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
             <button id="btn-stay" class="btn" type="button">🃏 Play This Round</button>
-            <button id="btn-fold" class="btn secondary" type="button">🏳️ Fold &amp; Sell (+${sellPts} pts)</button>
+            <button id="btn-fold" class="btn secondary" type="button">🏳️ Fold (Sit Out)</button>
           </div>
         </div>
       `;

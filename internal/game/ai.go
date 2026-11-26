@@ -9,8 +9,8 @@ func ChooseBotAction(s *GameState, playerIdx int) Action {
 		if playerIdx == len(s.Players)-1 {
 			return Action{Type: ActionFold}
 		}
-		sellPts := CountSellableCards(p.Hand)
-		if sellPts >= 2 {
+		// Voluntary fold if hand has 0 Gwang and weak matching potential; otherwise stay in
+		if CountSellableCards(p.Hand) == 0 && len(s.fieldMatches(p.Hand[0].Month)) == 0 {
 			return Action{Type: ActionFold}
 		}
 		return Action{Type: ActionStayIn}
