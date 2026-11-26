@@ -16,6 +16,7 @@ const gameView = document.getElementById('game-view');
 const statusPill = document.getElementById('status-pill');
 const hostMenuBtn = document.getElementById('host-menu-btn');
 const hintsBtn = document.getElementById('hints-btn');
+const logBtn = document.getElementById('log-btn');
 const qrBtn = document.getElementById('qr-btn');
 const rulesBtn = document.getElementById('rules-btn');
 const muteBtn = document.getElementById('mute-btn');
@@ -32,6 +33,40 @@ hintsBtn.addEventListener('click', () => {
   const next = !getState().hints;
   updateState({ hints: next });
 });
+
+function openLogModal() {
+  const st = getState();
+  const root = document.getElementById('modal-root');
+  root.classList.remove('hidden');
+  const entries = st.eventLog || [];
+  const itemsHtml = entries.length
+    ? entries.map((e) => `<li class="log-item"><span class="log-time">${e.time}</span>${escapeHtml(e.text)}</li>`).join('')
+    : `<li class="log-item" style="color:var(--text-muted);text-align:center;">No plays recorded yet this round.</li>`;
+  root.innerHTML = `
+    <div class="modal-card" style="max-width:480px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="margin:0;">📜 Play Log</h3>
+        <button id="log-close-x" class="icon-btn" type="button" title="Close">✕</button>
+      </div>
+      <ul class="log-list">${itemsHtml}</ul>
+      <div class="modal-actions">
+        <button id="log-close-btn" class="btn" type="button">Close</button>
+      </div>
+    </div>
+  `;
+  const close = () => root.classList.add('hidden');
+  root.querySelector('#log-close-x').addEventListener('click', close);
+  root.querySelector('#log-close-btn').addEventListener('click', close);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[ch]));
+}
+
+logBtn.addEventListener('click', openLogModal);
+lastMoveBar.addEventListener('click', openLogModal);
 
 hostMenuBtn.addEventListener('click', () => {
   const root = document.getElementById('modal-root');
@@ -148,6 +183,10 @@ function summarizeEvents(events, game) {
       special = `흔들기${m} (×2)!`;
     }
     if (ev.type === 'go_called') special = ev.message;
+    if (ev.type === 'round_started' || ev.type === 'round_ended' || ev.type === 'undo') return ev.message;
+    if (ev.type === 'pi_stolen' && ev.cards && ev.cards[0]) {
+      special = special ? `${special} · Stole ${ev.cards[0].name}` : `Stole ${ev.cards[0].name}`;
+    }
     if (ev.type === 'player_folded' || ev.type === 'player_stayed') return ev.message;
   }
   const parts = [];
@@ -177,10 +216,17 @@ onEvents((events) => {
     animDuration = animateEvents(events, beforeSnapshot, afterSnapshot, st.game.myIndex);
   }
 
+  if (events.some((ev) => ev.type === 'round_started')) {
+    st.eventLog = [];
+  }
   const summary = summarizeEvents(events, st.game);
   if (summary) {
     lastMoveBar.textContent = summary;
     lastMoveBar.classList.remove('hidden');
+    const now = new Date();
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    st.eventLog.unshift({ time, text: summary });
+    if (st.eventLog.length > 60) st.eventLog.pop();
   }
 
   // Play sound effects, haptics, and big callouts timed gently with the animation

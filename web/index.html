@@ -17,6 +17,7 @@
       <div style="display:flex;align-items:center;gap:6px;">
         <button id="host-menu-btn" class="pill-btn hidden" title="Host Table Controls">🔄 Restart</button>
         <button id="hints-btn" class="pill-btn" title="Toggle match highlights & combo hints">💡 Hints: ON</button>
+        <button id="log-btn" class="icon-btn" title="Play Log">📜</button>
         <button id="qr-btn" class="icon-btn" title="Show Join QR Code">📱</button>
         <button id="rules-btn" class="icon-btn" title="Rules & Scoring Guide">❓</button>
         <button id="mute-btn" class="icon-btn" title="Toggle Sound">🔊</button>
@@ -31,7 +32,7 @@
     <main id="lobby-view" class="view active"></main>
     <main id="game-view" class="view">
       <section id="opponents-bar" class="opponents-bar"></section>
-      <div id="last-move-bar" class="last-move-bar hidden"></div>
+      <div id="last-move-bar" class="last-move-bar hidden" title="Tap to view full play log"></div>
       <section id="board-area" class="board-area"></section>
       <section id="my-captured" class="my-captured"></section>
       <section id="my-hand" class="my-hand"></section>

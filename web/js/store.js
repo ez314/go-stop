@@ -14,6 +14,7 @@ const state = {
   canUndo: false,
   selectedCardId: '',
   lastMove: '',
+  eventLog: [],
 };
 
 const listeners = new Set();
