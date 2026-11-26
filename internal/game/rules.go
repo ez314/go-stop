@@ -16,7 +16,7 @@ func DefaultRules(playerCount int) RuleConfig {
 	if playerCount == 2 {
 		return RuleConfig{
 			PlayerCount:       2,
-			IncludeBonusCards: true,
+			IncludeBonusCards: false,
 			WinScore:          7,
 			PiBakThreshold:    7,
 			EnableShakeBomb:   true,
