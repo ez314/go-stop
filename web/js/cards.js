@@ -12,7 +12,7 @@ const CARD_SVG_MAP = {
   '08-gwang': 'm08-01.svg', '08-yeol': 'm08-02.svg', '08-pi1': 'm08-03.svg', '08-pi2': 'm08-04.svg',
   '09-yeol':  'm09-01.svg', '09-tti': 'm09-02.svg', '09-pi1': 'm09-03.svg', '09-pi2': 'm09-04.svg',
   '10-yeol':  'm10-01.svg', '10-tti': 'm10-02.svg', '10-pi1': 'm10-03.svg', '10-pi2': 'm10-04.svg',
-  '11-gwang': 'm11-01.svg', '11-pi2x': 'm11-04.svg', '11-pi1': 'm11-03.svg', '11-pi2': 'm11-02.svg',
+  '11-gwang': 'm11-01.svg', '11-pi2x': 'm11-02.svg', '11-pi1': 'm11-03.svg', '11-pi2': 'm11-04.svg',
   '12-gwang': 'm12-01.svg', '12-yeol': 'm12-02.svg', '12-tti': 'm12-03.svg', '12-pi2x': 'm12-04.svg',
 };
 
