@@ -254,3 +254,47 @@ func TestBotSeatAndUndoFlow(t *testing.T) {
 		t.Fatalf("undo did not restore seat 0 turn")
 	}
 }
+
+func TestReclaimDisconnectedSeat(t *testing.T) {
+	room := NewRoom("http://192.168.0.10:8081", []string{"http://192.168.0.10:8081"})
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		ServeWS(room, w, r)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	c1 := dialTestWS(t, srv.URL)
+	defer c1.Close()
+	c2 := dialTestWS(t, srv.URL)
+	readUntilType(t, c1, "lobby")
+	readUntilType(t, c2, "lobby")
+
+	_ = c1.WriteJSON(ClientMsg{Type: "join", Name: "Eric"})
+	readUntilType(t, c1, "welcome")
+	_ = c2.WriteJSON(ClientMsg{Type: "join", Name: "Lexie"})
+	readUntilType(t, c2, "welcome")
+	_ = c1.WriteJSON(ClientMsg{Type: "start_game"})
+	readUntilType(t, c1, "state")
+	readUntilType(t, c2, "state")
+
+	// Lexie disconnects (loses phone tab)
+	_ = c2.Close()
+	time.Sleep(40 * time.Millisecond)
+
+	// Lexie opens a brand new tab (no token) -> receives spectator state, then clicks Rejoin as Lexie (seat 1)
+	c2New := dialTestWS(t, srv.URL)
+	defer c2New.Close()
+	readUntilType(t, c2New, "lobby")
+	readUntilType(t, c2New, "state")
+
+	_ = c2New.WriteJSON(ClientMsg{Type: "reclaim", TargetSeat: 1})
+	w, _ := readUntilType(t, c2New, "welcome")
+	if w.Seat != 1 || w.Token == "" {
+		t.Fatalf("expected reclaimed seat 1 with token, got %+v", w)
+	}
+	st, _ := readUntilType(t, c2New, "state")
+	if st.Game == nil || st.Game.MyIndex != 1 || len(st.Game.MyHand) == 0 {
+		t.Fatalf("expected Lexie's active hand restored, got %+v", st.Game)
+	}
+}

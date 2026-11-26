@@ -113,6 +113,8 @@ func (r *Room) HandleMessage(c *Client, msg ClientMsg) {
 		r.handleLeaveLocked(c)
 	case "kick":
 		r.handleKickLocked(c, msg.TargetSeat)
+	case "reclaim":
+		r.handleReclaimLocked(c, msg.TargetSeat)
 	default:
 		c.Send(ServerMsg{Type: "error", Error: "unknown message type: " + msg.Type})
 	}
@@ -213,6 +215,30 @@ func (r *Room) handleKickLocked(c *Client, targetSeat int) {
 		}
 	}
 	r.broadcastLobbyLocked()
+}
+
+func (r *Room) handleReclaimLocked(c *Client, targetSeat int) {
+	if r.findSeatByClient(c) >= 0 {
+		return
+	}
+	if targetSeat < 0 || targetSeat >= len(r.seats) {
+		c.Send(ServerMsg{Type: "error", Error: "seat not found"})
+		return
+	}
+	sp := r.seats[targetSeat]
+	if sp.isBot || sp.client != nil {
+		c.Send(ServerMsg{Type: "error", Error: "that seat is already active"})
+		return
+	}
+	delete(r.specs, c)
+	sp.client = c
+	c.Send(ServerMsg{Type: "welcome", Token: sp.token, Seat: targetSeat})
+	r.broadcastLobbyLocked()
+	if r.game != nil {
+		view := r.game.ViewFor(targetSeat)
+		canUndo := r.undoSnap != nil && r.undoSeat == targetSeat && !r.undoUsed[targetSeat] && r.game.Phase != game.PhaseRoundOver
+		c.Send(ServerMsg{Type: "state", Game: &view, CanUndo: canUndo})
+	}
 }
 
 func (r *Room) handleLeaveLocked(c *Client) {

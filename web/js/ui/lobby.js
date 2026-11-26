@@ -71,10 +71,11 @@ export function renderLobby(container, state) {
         const botTag = p.isBot ? `<span class="host-tag" style="background:rgba(56,189,248,0.18);color:#7dd3fc;border-color:rgba(56,189,248,0.45);">🤖 Bot</span>` : '';
         const conn = p.isBot ? '🤖' : (p.connected ? '🟢' : '🔴');
         const kickBtn = (isHost && i > 0) ? `<button class="btn secondary kick-btn" data-seat="${i}" type="button" style="padding:3px 8px;font-size:0.75rem;margin-left:8px;">Remove</button>` : '';
+        const rejoinBtn = (!seated && !p.connected && !p.isBot) ? `<button class="btn rejoin-btn" data-seat="${i}" type="button" style="padding:3px 10px;font-size:0.75rem;margin-left:8px;">Rejoin</button>` : '';
         html += `
           <li class="player-item">
             <span>${conn} <strong>${escapeHtml(p.name)}</strong>${you}${hostTag}${botTag}</span>
-            <span>${p.totalPoints} pts${kickBtn}</span>
+            <span>${p.totalPoints} pts${rejoinBtn}${kickBtn}</span>
           </li>
         `;
       } else {
@@ -177,6 +178,12 @@ export function renderLobby(container, state) {
   for (const btn of container.querySelectorAll('.kick-btn')) {
     btn.addEventListener('click', () => {
       sendMsg({ type: 'kick', targetSeat: Number(btn.dataset.seat) });
+    });
+  }
+
+  for (const btn of container.querySelectorAll('.rejoin-btn')) {
+    btn.addEventListener('click', () => {
+      sendMsg({ type: 'reclaim', targetSeat: Number(btn.dataset.seat) });
     });
   }
 

@@ -14,8 +14,23 @@ export function renderHand(state) {
   if (!g) return;
 
   if (g.myIndex < 0) {
-    container.innerHTML = `<div class="hand-header"><span>Spectating</span></div>`;
+    const disconnected = (state.lobby && state.lobby.players)
+      ? state.lobby.players.filter((p) => !p.connected && !p.isBot)
+      : [];
+    let rejoinHtml = '';
+    if (disconnected.length > 0) {
+      rejoinHtml = `
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:6px;">
+          <span style="font-size:0.84rem;color:var(--text-muted);">Lost your seat?</span>
+          ${disconnected.map((p) => `<button class="btn rejoin-btn" data-seat="${p.seat}" type="button">Rejoin as ${escapeHtml(p.name)}</button>`).join('')}
+        </div>
+      `;
+    }
+    container.innerHTML = `<div class="hand-header"><span>Spectating</span></div>${rejoinHtml}`;
     container.classList.remove('active-turn');
+    for (const btn of container.querySelectorAll('.rejoin-btn')) {
+      btn.addEventListener('click', () => sendMsg({ type: 'reclaim', targetSeat: Number(btn.dataset.seat) }));
+    }
     return;
   }
 
