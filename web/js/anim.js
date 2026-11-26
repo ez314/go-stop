@@ -171,9 +171,10 @@ export function animateEvents(events, beforeSnap, afterSnap, myIndex) {
     }
   }
 
-  // Hide destination DOM cards until their flying animation lands
+  // Hide destination DOM cards ONLY for events that actually fly cards
+  const animatableTypes = new Set(['card_played', 'card_flipped', 'captured', 'bomb', 'pi_stolen']);
   for (const ev of events) {
-    if (ev.cards) {
+    if (animatableTypes.has(ev.type) && ev.cards) {
       for (const c of ev.cards) {
         hideRealCard(c.id);
       }
