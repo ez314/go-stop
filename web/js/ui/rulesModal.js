@@ -42,7 +42,7 @@ export function getFullScoringHtml() {
       <div><strong>피 (Junk / Pi)</strong>: 10+ Pi = 1 pt (+1 each extra). Double-Pi counts as 2 Pi.</div>
       <div><strong>Go &amp; Multipliers</strong>: 1 Go = +1 pt · 2 Go = +2 pts · 3+ Go = +N pts &amp; x2 per Go (3 Go = x2, 4 Go = x4...). Shake / Bomb = x2 each.</div>
       <div><strong>Penalties (박)</strong>: <em>Pi-bak</em> (x2), <em>Go-bak</em> (if you called Go and someone else wins, you pay for everyone!).</div>
-      <div><strong>Special Moves</strong>: <em>Ddak (딱)</em>, <em>Tdadak (따닥)</em>, <em>Ssak-seu-ri (싹쓸이)</em>, and <em>Bomb (폭탄)</em> each steal 1 Pi from opponents. <em>Ssa (쌌다)</em> leaves 3 matching cards on the table (3× Ssa = auto-win 3 pts; 4-of-a-kind starting hand / Chongtong = auto-win 10 pts).</div>
+      <div><strong>Special Moves</strong>: <em>Ddak (딱)</em>, <em>Tdadak (따닥)</em>, <em>Ssak-seu-ri (싹쓸이)</em>, and <em>Bomb (폭탄)</em> each steal 1 Pi from opponents. <em>Ssa (쌌다)</em> leaves 3 matching cards on the table (3× Ssa = auto-win 3 pts; Chongtong = auto-win 10 pts). On a <em>Nagari (Draw)</em>, each active player puts 1 pt into the pot and the next round's winner takes the pot!</div>
     </div>
   `;
 }

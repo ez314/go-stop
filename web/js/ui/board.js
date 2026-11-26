@@ -16,6 +16,14 @@ export function renderBoard(state) {
   const drawLabel = document.createElement('span');
   drawLabel.textContent = 'Draw';
   drawBox.appendChild(drawLabel);
+  if (state.lobby && state.lobby.pot > 0) {
+    const potBadge = document.createElement('span');
+    potBadge.className = 'score-badge';
+    potBadge.style.marginTop = '2px';
+    potBadge.title = 'Nagari Pot: winner of this round collects the pot!';
+    potBadge.textContent = `🏆 Pot: ${state.lobby.pot}`;
+    drawBox.appendChild(potBadge);
+  }
   board.appendChild(drawBox);
 
   // Field grouped by month

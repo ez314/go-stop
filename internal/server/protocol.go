@@ -29,6 +29,7 @@ type LobbyView struct {
 	Config   game.RuleConfig `json:"config"`
 	InGame   bool            `json:"inGame"`
 	HostSeat int             `json:"hostSeat"`
+	Pot      int             `json:"pot,omitempty"`
 	LanURL   string          `json:"lanUrl,omitempty"`
 	LanURLs  []string        `json:"lanUrls,omitempty"`
 }

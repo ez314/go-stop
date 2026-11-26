@@ -298,3 +298,35 @@ func TestReclaimDisconnectedSeat(t *testing.T) {
 		t.Fatalf("expected Lexie's active hand restored, got %+v", st.Game)
 	}
 }
+
+func TestNagariPotCarryover(t *testing.T) {
+	room := NewRoom("http://localhost:8081", nil)
+	room.seats = []*seatPlayer{
+		{name: "A"},
+		{name: "B"},
+	}
+	// Round 1 ends in Nagari (draw) -> each active player puts 1 pt into pot (pot = 2)
+	room.game = &game.GameState{
+		Players: []*game.PlayerState{{Name: "A"}, {Name: "B"}},
+		Result: &game.RoundResult{
+			IsDraw:      true,
+			WinnerIdx:   -1,
+			Settlements: []int{0, 0},
+		},
+	}
+	room.applyRoundSettlementLocked()
+	if room.pot != 2 || room.seats[0].totalPoints != -1 || room.seats[1].totalPoints != -1 {
+		t.Fatalf("expected pot=2 and totals [-1,-1], got pot=%d totals=[%d,%d]", room.pot, room.seats[0].totalPoints, room.seats[1].totalPoints)
+	}
+
+	// Round 2: Player 0 wins 7 pts -> collects the 2-pt pot (+9 total for round) and pot resets to 0
+	room.game.Result = &game.RoundResult{
+		IsDraw:      false,
+		WinnerIdx:   0,
+		Settlements: []int{7, -7},
+	}
+	room.applyRoundSettlementLocked()
+	if room.pot != 0 || room.seats[0].totalPoints != 8 || room.seats[1].totalPoints != -8 {
+		t.Fatalf("expected pot=0 and totals [8,-8], got pot=%d totals=[%d,%d]", room.pot, room.seats[0].totalPoints, room.seats[1].totalPoints)
+	}
+}

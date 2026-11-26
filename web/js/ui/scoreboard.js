@@ -15,7 +15,8 @@ export function renderScoreboard(state) {
   let breakdownHtml = '';
   if (res.isDraw) {
     title = 'Nagari (Draw)';
-    subtitle = 'No winner this round.';
+    const potNow = (state.lobby && state.lobby.pot) ? state.lobby.pot : 0;
+    subtitle = `Each active player puts 1 pt into the pot (🏆 Pot: ${potNow} pts — next winner takes all!).`;
   } else {
     const winner = g.players[res.winnerIdx];
     title = `${winner.name} Wins!`;

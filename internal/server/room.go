@@ -30,6 +30,7 @@ type Room struct {
 	config      game.RuleConfig
 	game        *game.GameState
 	nextDealer  int // previous round's winner goes first next round
+	pot         int // Nagari (draw) pot collected from players and awarded to next winner
 	gameGen     int // incremented per round / undo to cancel stale bot timers
 	undoSnap    *game.GameState
 	undoSeat    int
@@ -500,10 +501,34 @@ func (r *Room) scheduleBotTurnLocked() {
 }
 
 func (r *Room) applyRoundSettlementLocked() {
-	if r.game != nil && r.game.Result != nil && !r.game.Result.IsDraw && r.game.Result.WinnerIdx >= 0 {
-		r.nextDealer = r.game.Result.WinnerIdx
+	if r.game == nil || r.game.Result == nil {
+		return
 	}
-	for i, delta := range r.game.Result.Settlements {
+	res := r.game.Result
+	if res.IsDraw {
+		// Nagari: each active (non-folded) player puts 1 point into the pot
+		for i, p := range r.game.Players {
+			if !p.Folded && i < len(r.seats) {
+				res.Settlements[i] -= 1
+				r.seats[i].totalPoints -= 1
+				r.pot += 1
+			}
+		}
+		return
+	}
+
+	if res.WinnerIdx >= 0 && res.WinnerIdx < len(r.seats) {
+		r.nextDealer = res.WinnerIdx
+		if r.pot > 0 {
+			res.Settlements[res.WinnerIdx] += r.pot
+			if len(res.Penalties) < len(r.seats) {
+				res.Penalties = make([][]string, len(r.seats))
+			}
+			res.Penalties[res.WinnerIdx] = append(res.Penalties[res.WinnerIdx], fmt.Sprintf("Pot (+%d)", r.pot))
+			r.pot = 0
+		}
+	}
+	for i, delta := range res.Settlements {
 		if i < len(r.seats) {
 			r.seats[i].totalPoints += delta
 		}
@@ -547,6 +572,7 @@ func (r *Room) buildLobbyLocked() *LobbyView {
 		Config:   r.config,
 		InGame:   r.game != nil,
 		HostSeat: 0,
+		Pot:      r.pot,
 		LanURL:   r.lanURL,
 		LanURLs:  r.lanURLs,
 	}

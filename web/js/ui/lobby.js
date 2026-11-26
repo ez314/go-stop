@@ -83,6 +83,9 @@ export function renderLobby(container, state) {
       }
     }
     html += `</ul>`;
+    if (lobby.pot > 0) {
+      html += `<div style="text-align:center;margin-bottom:10px;"><span class="score-badge">🏆 Nagari Pot: ${lobby.pot} pts (next winner takes all!)</span></div>`;
+    }
 
     if (seated) {
       const full = lobby.players.length === lobby.config.playerCount;
